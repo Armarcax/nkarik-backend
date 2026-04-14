@@ -28,13 +28,13 @@ def health():
 
 @app.post("/generate")
 async def generate(req: ImageRequest):
-    # 1. Decode base64 (հեռացնել data:image/png;base64,)
+    # 1. Decode base64 (հեռացնել data:image/...;base64,)
     if ',' in req.image:
         img_b64 = req.image.split(',')[1]
     else:
         img_b64 = req.image
 
-    # 2. Prompt-ներ
+    # 2. Prompt-ներ ըստ ոճի
     prompts = {
         "cartoon": "cartoon style, colorful, children's book illustration, white background, simple, cute",
         "3d": "3D render, Pixar style, soft lighting, cute character, white background",
@@ -45,16 +45,17 @@ async def generate(req: ImageRequest):
     }
     prompt = prompts.get(req.style, prompts["cartoon"])
 
-    # 3. Hugging Face Inference API (img2img աջակցող մոդել)
-    API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+    # 3. Նոր Hugging Face Router URL (img2img)
+    API_URL = "https://router.huggingface.co/hf-inference/models/runwayml/stable-diffusion-v1-5"
     headers = {
         "Authorization": f"Bearer {HF_TOKEN}",
         "Content-Type": "application/json"
     }
 
+    # JSON payload — ինչպես սպասում է նոր router-ը
     payload = {
         "inputs": {
-            "image": img_b64,               # միայն base64, առանց prefix-ի
+            "image": img_b64,
             "prompt": prompt,
             "strength": req.strength,
             "guidance_scale": 7.5,
@@ -63,7 +64,7 @@ async def generate(req: ImageRequest):
     }
 
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=45)
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
         if response.status_code != 200:
             error_detail = response.text
             raise Exception(f"HF API error {response.status_code}: {error_detail}")
@@ -72,7 +73,6 @@ async def generate(req: ImageRequest):
         content_type = response.headers.get("content-type", "")
         if "application/json" in content_type:
             result_json = response.json()
-            # Որոշ մոդելներ վերադարձնում են {"generated_image": "base64..."}
             if "generated_image" in result_json:
                 img_bytes = base64.b64decode(result_json["generated_image"])
             else:
@@ -88,15 +88,14 @@ async def generate(req: ImageRequest):
         }
 
     except Exception as e:
-        # Fallback + մանրամասն սխալ (կտեսնես frontend-ում)
         error_msg = str(e)
-        print(f"Fallback triggered: {error_msg}")
+        print(f"Fallback used: {error_msg}")
         return {
             "status": "ok",
             "result": req.image,
             "style": req.style,
             "note": "fallback",
-            "error_details": error_msg[:300]   # կարճ տարբերակը
+            "error_details": error_msg[:300]
         }
 
 if __name__ == "__main__":
