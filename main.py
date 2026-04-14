@@ -2,11 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
-import io
 import requests
-from PIL import Image
-import uvicorn
 import os
+import uvicorn
 
 app = FastAPI()
 
@@ -17,7 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ՓՈԽԻՐ ՔՈ TOKEN-ՈՎ
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 
 class ImageRequest(BaseModel):
@@ -31,14 +28,13 @@ def health():
 
 @app.post("/generate")
 async def generate(req: ImageRequest):
-    # 1. Decode base64 image
+    # 1. Decode base64 (հեռացնել data:image/png;base64,)
     if ',' in req.image:
         img_b64 = req.image.split(',')[1]
     else:
         img_b64 = req.image
-    image_bytes = base64.b64decode(img_b64)
 
-    # 2. Prompt-ներ ըստ ոճի
+    # 2. Prompt-ներ
     prompts = {
         "cartoon": "cartoon style, colorful, children's book illustration, white background, simple, cute",
         "3d": "3D render, Pixar style, soft lighting, cute character, white background",
@@ -49,34 +45,58 @@ async def generate(req: ImageRequest):
     }
     prompt = prompts.get(req.style, prompts["cartoon"])
 
-    # 3. Hugging Face Inference API (img2img-ի համար)
-    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    # 3. Hugging Face Inference API (img2img աջակցող մոդել)
+    API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}",
+        "Content-Type": "application/json"
+    }
 
-    # Քանի որ API-ն սպասում է multipart/form-data
-    files = {"image": image_bytes}
-    data = {"prompt": prompt}
+    payload = {
+        "inputs": {
+            "image": img_b64,               # միայն base64, առանց prefix-ի
+            "prompt": prompt,
+            "strength": req.strength,
+            "guidance_scale": 7.5,
+            "num_inference_steps": 25
+        }
+    }
 
     try:
-        response = requests.post(API_URL, headers=headers, files=files, data=data)
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=45)
         if response.status_code != 200:
-            raise Exception(f"Hugging Face error {response.status_code}: {response.text}")
+            error_detail = response.text
+            raise Exception(f"HF API error {response.status_code}: {error_detail}")
 
-        # 4. Արդյունքը base64
-        result_b64 = base64.b64encode(response.content).decode()
+        # API-ն կարող է վերադարձնել JSON կամ ուղղակի bytes
+        content_type = response.headers.get("content-type", "")
+        if "application/json" in content_type:
+            result_json = response.json()
+            # Որոշ մոդելներ վերադարձնում են {"generated_image": "base64..."}
+            if "generated_image" in result_json:
+                img_bytes = base64.b64decode(result_json["generated_image"])
+            else:
+                raise Exception(f"Unexpected JSON response: {result_json}")
+        else:
+            img_bytes = response.content
+
+        result_b64 = base64.b64encode(img_bytes).decode()
         return {
             "status": "ok",
             "result": f"data:image/png;base64,{result_b64}",
             "style": req.style
         }
+
     except Exception as e:
-        # Fallback – եթե API-ն չի աշխատում, վերադարձնում ենք նույն նկարը
-        print("Fallback used:", str(e))
+        # Fallback + մանրամասն սխալ (կտեսնես frontend-ում)
+        error_msg = str(e)
+        print(f"Fallback triggered: {error_msg}")
         return {
             "status": "ok",
             "result": req.image,
             "style": req.style,
-            "note": "fallback"
+            "note": "fallback",
+            "error_details": error_msg[:300]   # կարճ տարբերակը
         }
 
 if __name__ == "__main__":
