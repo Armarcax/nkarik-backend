@@ -2,9 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
-import requests
+import replicate
 import os
 import uvicorn
+import io
+from PIL import Image
+import requests
 
 app = FastAPI()
 
@@ -15,7 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
+# Token-ը Render/Vercel-ի Environment Variable-ից
+REPLICATE_API_TOKEN = os.environ.get("REPLICATE_TOKEN", "")
 
 class ImageRequest(BaseModel):
     image: str
@@ -28,11 +32,22 @@ def health():
 
 @app.post("/generate")
 async def generate(req: ImageRequest):
-    # 1. Decode base64 (հեռացնել data:image/...;base64,)
+    # 1. Base64 → PIL Image
     if ',' in req.image:
         img_b64 = req.image.split(',')[1]
     else:
         img_b64 = req.image
+
+    try:
+        image_bytes = base64.b64decode(img_b64)
+        input_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        input_image = input_image.resize((512, 512))
+    except Exception as e:
+        return {
+            "status": "error",
+            "result": req.image,
+            "error": f"Invalid image: {e}"
+        }
 
     # 2. Prompt-ներ ըստ ոճի
     prompts = {
@@ -45,42 +60,39 @@ async def generate(req: ImageRequest):
     }
     prompt = prompts.get(req.style, prompts["cartoon"])
 
-    # 3. Նոր Hugging Face Router URL (img2img)
-    API_URL = "https://router.huggingface.co/hf-inference/models/runwayml/stable-diffusion-v1-5"
-    headers = {
-        "Authorization": f"Bearer {HF_TOKEN}",
-        "Content-Type": "application/json"
-    }
-
-    # JSON payload — ինչպես սպասում է նոր router-ը
-    payload = {
-        "inputs": {
-            "image": img_b64,
-            "prompt": prompt,
-            "strength": req.strength,
-            "guidance_scale": 7.5,
-            "num_inference_steps": 25
-        }
-    }
-
+    # 3. Replicate API կանչ
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
-        if response.status_code != 200:
-            error_detail = response.text
-            raise Exception(f"HF API error {response.status_code}: {error_detail}")
+        os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_TOKEN
 
-        # API-ն կարող է վերադարձնել JSON կամ ուղղակի bytes
-        content_type = response.headers.get("content-type", "")
-        if "application/json" in content_type:
-            result_json = response.json()
-            if "generated_image" in result_json:
-                img_bytes = base64.b64decode(result_json["generated_image"])
-            else:
-                raise Exception(f"Unexpected JSON response: {result_json}")
+        # Stable Diffusion Img2Img մոդելի ID (Replicate-ի կողմից ստուգված)
+        model_id = "stability-ai/stable-diffusion-img2img:527d2e262f7f45a04c9b2ef8df6c1d6c5c3f3a7e1d1b5f7c8e9d0a1b2c3d4e5f6"
+
+        output = replicate.run(
+            model_id,
+            input={
+                "image": input_image,
+                "prompt": prompt,
+                "strength": req.strength,
+                "num_inference_steps": 25,
+                "guidance_scale": 7.5,
+                "negative_prompt": "realistic, scary, dark, violent, complex background, blurry, low quality"
+            }
+        )
+
+        # output-ը list է [FileOutput] կամ [str] (URL)
+        if isinstance(output, list) and len(output) > 0:
+            result_url = output[0]
         else:
-            img_bytes = response.content
+            result_url = output
 
-        result_b64 = base64.b64encode(img_bytes).decode()
+        # 4. Ներբեռնել արդյունքը և դարձնել base64
+        if hasattr(result_url, 'url'):
+            response = requests.get(result_url.url)
+        else:
+            response = requests.get(result_url)
+
+        result_b64 = base64.b64encode(response.content).decode()
+
         return {
             "status": "ok",
             "result": f"data:image/png;base64,{result_b64}",
@@ -89,7 +101,8 @@ async def generate(req: ImageRequest):
 
     except Exception as e:
         error_msg = str(e)
-        print(f"Fallback used: {error_msg}")
+        print(f"Replicate error: {error_msg}")
+        # Fallback – ցույց տալ original-ը
         return {
             "status": "ok",
             "result": req.image,
