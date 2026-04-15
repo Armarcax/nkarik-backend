@@ -2,23 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
-import replicate
 import os
 import uvicorn
 import io
 import sys
 import requests
 from PIL import Image
-
-# ---------- Token-ի սահմանում import-ից առաջ ----------
-REPLICATE_TOKEN = os.environ.get("REPLICATE_TOKEN", "")
-if REPLICATE_TOKEN:
-    os.environ["REPLICATE_API_TOKEN"] = REPLICATE_TOKEN
-    print(f"✅ REPLICATE_TOKEN set. Prefix: {REPLICATE_TOKEN[:8]}...", file=sys.stderr)
-else:
-    print("❌ REPLICATE_TOKEN missing!", file=sys.stderr)
-
-import replicate
 
 app = FastAPI()
 
@@ -36,11 +25,7 @@ class ImageRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {
-        "status": "ok",
-        "replicate_token_present": bool(REPLICATE_TOKEN),
-        "replicate_token_prefix": REPLICATE_TOKEN[:8] + "..." if REPLICATE_TOKEN else "none"
-    }
+    return {"status": "ok"}
 
 @app.post("/generate")
 async def generate(req: ImageRequest):
@@ -53,7 +38,7 @@ async def generate(req: ImageRequest):
     try:
         image_bytes = base64.b64decode(img_b64)
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        img = img.resize((1024, 1024))  # SDXL-ի համար 1024x1024
+        img = img.resize((512, 512))   # HF API-ի համար 512x512-ը օպտիմալ է
     except Exception as e:
         return {
             "status": "error",
@@ -72,50 +57,29 @@ async def generate(req: ImageRequest):
     }
     prompt = prompts.get(req.style, prompts["cartoon"])
 
-    if not REPLICATE_TOKEN:
-        return {
-            "status": "ok",
-            "result": req.image,
-            "style": req.style,
-            "note": "fallback",
-            "error_details": "REPLICATE_TOKEN not set"
-        }
-
     try:
-        print(f"🚀 Calling Replicate SDXL with style '{req.style}', strength={req.strength}", file=sys.stderr)
+        print(f"🚀 Using Hugging Face public API (img2img) with style '{req.style}'", file=sys.stderr)
 
-        # SDXL Img2Img մոդել (կարճ ID, միշտ աշխատում է)
-        model_id = "stability-ai/sdxl"
+        # Hugging Face public img2img (աշխատում է առանց token-ի)
+        API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+        headers = {"Content-Type": "application/json"}
 
-        input_image_uri = f"data:image/png;base64,{img_b64}"
-
-        output = replicate.run(
-            model_id,
-            input={
-                "image": input_image_uri,
+        payload = {
+            "inputs": {
+                "image": img_b64,
                 "prompt": prompt,
                 "strength": req.strength,
-                "num_inference_steps": 30,
                 "guidance_scale": 7.5,
-                "negative_prompt": "realistic, scary, dark, violent, complex background, blurry, low quality"
+                "num_inference_steps": 25
             }
-        )
+        }
 
-        # output-ը list է FileOutput-ներից
-        if isinstance(output, list) and len(output) > 0:
-            result_url = output[0]
-        else:
-            result_url = output
-
-        if hasattr(result_url, 'url'):
-            response = requests.get(result_url.url)
-        else:
-            response = requests.get(str(result_url))
-
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=90)
         if response.status_code != 200:
-            raise Exception(f"Failed to download result image: HTTP {response.status_code}")
+            raise Exception(f"HF API error {response.status_code}: {response.text}")
 
-        result_b64 = base64.b64encode(response.content).decode()
+        result_bytes = response.content
+        result_b64 = base64.b64encode(result_bytes).decode()
         return {
             "status": "ok",
             "result": f"data:image/png;base64,{result_b64}",
@@ -124,7 +88,6 @@ async def generate(req: ImageRequest):
 
     except Exception as e:
         error_msg = str(e)
-        # Տպենք ամբողջական traceback-ը Render-ի logs-ում
         import traceback
         traceback.print_exc(file=sys.stderr)
         return {
