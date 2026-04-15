@@ -18,7 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Token-ը Render/Vercel-ի Environment Variable-ից
 REPLICATE_API_TOKEN = os.environ.get("REPLICATE_TOKEN", "")
 
 class ImageRequest(BaseModel):
@@ -32,16 +31,16 @@ def health():
 
 @app.post("/generate")
 async def generate(req: ImageRequest):
-    # 1. Base64 → PIL Image
+    # 1. Base64 → PIL (միայն ստուգելու/փոփոխելու համար, Replicate-ին կուղարկենք base64)
     if ',' in req.image:
         img_b64 = req.image.split(',')[1]
     else:
         img_b64 = req.image
 
     try:
+        # Ստուգենք, որ նկարը կարդացվի
         image_bytes = base64.b64decode(img_b64)
-        input_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        input_image = input_image.resize((512, 512))
+        Image.open(io.BytesIO(image_bytes)).convert("RGB")
     except Exception as e:
         return {
             "status": "error",
@@ -49,7 +48,7 @@ async def generate(req: ImageRequest):
             "error": f"Invalid image: {e}"
         }
 
-    # 2. Prompt-ներ ըստ ոճի
+    # 2. Prompt-ներ
     prompts = {
         "cartoon": "cartoon style, colorful, children's book illustration, white background, simple, cute",
         "3d": "3D render, Pixar style, soft lighting, cute character, white background",
@@ -64,13 +63,15 @@ async def generate(req: ImageRequest):
     try:
         os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_TOKEN
 
-        # Stable Diffusion Img2Img մոդելի ID (Replicate-ի կողմից ստուգված)
+        # ⚠️ Փոխանցում ենք base64 data URL (Replicate-ը սիրում է սա)
+        input_image_uri = f"data:image/png;base64,{img_b64}"
+
         model_id = "stability-ai/stable-diffusion-img2img:527d2e262f7f45a04c9b2ef8df6c1d6c5c3f3a7e1d1b5f7c8e9d0a1b2c3d4e5f6"
 
         output = replicate.run(
             model_id,
             input={
-                "image": input_image,
+                "image": input_image_uri,        # ✅ Base64 data URL
                 "prompt": prompt,
                 "strength": req.strength,
                 "num_inference_steps": 25,
@@ -85,11 +86,11 @@ async def generate(req: ImageRequest):
         else:
             result_url = output
 
-        # 4. Ներբեռնել արդյունքը և դարձնել base64
+        # 4. Ներբեռնել արդյունքը
         if hasattr(result_url, 'url'):
             response = requests.get(result_url.url)
         else:
-            response = requests.get(result_url)
+            response = requests.get(str(result_url))
 
         result_b64 = base64.b64encode(response.content).decode()
 
@@ -102,7 +103,6 @@ async def generate(req: ImageRequest):
     except Exception as e:
         error_msg = str(e)
         print(f"Replicate error: {error_msg}")
-        # Fallback – ցույց տալ original-ը
         return {
             "status": "ok",
             "result": req.image,
