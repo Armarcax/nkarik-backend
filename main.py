@@ -84,8 +84,8 @@ async def generate(req: ImageRequest):
     try:
         print(f"🚀 Calling Replicate SDXL with style '{req.style}', strength={req.strength}", file=sys.stderr)
 
-        # SDXL Img2Img մոդել (հաստատ աշխատում է)
-        model_id = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
+        # SDXL Img2Img մոդել (կարճ ID, միշտ աշխատում է)
+        model_id = "stability-ai/sdxl"
 
         input_image_uri = f"data:image/png;base64,{img_b64}"
 
