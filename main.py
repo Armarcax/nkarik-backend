@@ -2,22 +2,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
+import replicate
 import os
 import uvicorn
 import io
 import sys
-from PIL import Image
 import requests
+from PIL import Image
 
-# ---------- ՆԱԽ ՍԱՀՄԱՆԵԼ ENV-Ը, ՀԵՏՈ ՆԵՐՄՈՒԾԵԼ REPLICATE ----------
+# ---------- Token-ի սահմանում import-ից առաջ ----------
 REPLICATE_TOKEN = os.environ.get("REPLICATE_TOKEN", "")
 if REPLICATE_TOKEN:
     os.environ["REPLICATE_API_TOKEN"] = REPLICATE_TOKEN
-    print(f"✅ REPLICATE_API_TOKEN set. Length: {len(REPLICATE_TOKEN)}, prefix: {REPLICATE_TOKEN[:8]}...", file=sys.stderr)
+    print(f"✅ REPLICATE_TOKEN set. Prefix: {REPLICATE_TOKEN[:8]}...", file=sys.stderr)
 else:
-    print("❌ REPLICATE_TOKEN environment variable is NOT SET!", file=sys.stderr)
+    print("❌ REPLICATE_TOKEN missing!", file=sys.stderr)
 
-# replicate-ը ներմուծում ենք token-ը սահմանելուց հետո
 import replicate
 
 app = FastAPI()
@@ -44,7 +44,7 @@ def health():
 
 @app.post("/generate")
 async def generate(req: ImageRequest):
-    # 1. Decode base64
+    # 1. Base64 decode
     if ',' in req.image:
         img_b64 = req.image.split(',')[1]
     else:
@@ -53,7 +53,7 @@ async def generate(req: ImageRequest):
     try:
         image_bytes = base64.b64decode(img_b64)
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        img = img.resize((512, 512))
+        img = img.resize((1024, 1024))  # SDXL-ի համար 1024x1024
     except Exception as e:
         return {
             "status": "error",
@@ -63,12 +63,12 @@ async def generate(req: ImageRequest):
 
     # 2. Prompts
     prompts = {
-        "cartoon": "cartoon style, colorful, children's book illustration, white background, simple, cute",
-        "3d": "3D render, Pixar style, soft lighting, cute character, white background",
-        "watercolor": "watercolor painting, soft artistic colors, gentle textures",
-        "comic": "comic book style, bold lines, pop art, vibrant",
-        "abstract": "abstract art, geometric shapes, colorful, modern",
-        "animation": "anime style, vibrant colors, cute character"
+        "cartoon": "cartoon style, colorful, children's book illustration, white background, simple, cute, high quality",
+        "3d": "3D render, Pixar style, soft lighting, cute character, white background, high quality",
+        "watercolor": "watercolor painting, soft artistic colors, gentle textures, high quality",
+        "comic": "comic book style, bold lines, pop art, vibrant, high quality",
+        "abstract": "abstract art, geometric shapes, colorful, modern, high quality",
+        "animation": "anime style, vibrant colors, cute character, high quality"
     }
     prompt = prompts.get(req.style, prompts["cartoon"])
 
@@ -82,10 +82,12 @@ async def generate(req: ImageRequest):
         }
 
     try:
-        print(f"🚀 Calling Replicate with style '{req.style}', strength={req.strength}", file=sys.stderr)
+        print(f"🚀 Calling Replicate SDXL with style '{req.style}', strength={req.strength}", file=sys.stderr)
+
+        # SDXL Img2Img մոդել (հաստատ աշխատում է)
+        model_id = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
 
         input_image_uri = f"data:image/png;base64,{img_b64}"
-        model_id = "stability-ai/stable-diffusion-img2img:527d2e262f7f45a04c9b2ef8df6c1d6c5c3f3a7e1d1b5f7c8e9d0a1b2c3d4e5f6"
 
         output = replicate.run(
             model_id,
@@ -93,12 +95,13 @@ async def generate(req: ImageRequest):
                 "image": input_image_uri,
                 "prompt": prompt,
                 "strength": req.strength,
-                "num_inference_steps": 25,
+                "num_inference_steps": 30,
                 "guidance_scale": 7.5,
                 "negative_prompt": "realistic, scary, dark, violent, complex background, blurry, low quality"
             }
         )
 
+        # output-ը list է FileOutput-ներից
         if isinstance(output, list) and len(output) > 0:
             result_url = output[0]
         else:
@@ -121,7 +124,9 @@ async def generate(req: ImageRequest):
 
     except Exception as e:
         error_msg = str(e)
-        print(f"❌ Replicate call failed: {error_msg}", file=sys.stderr)
+        # Տպենք ամբողջական traceback-ը Render-ի logs-ում
+        import traceback
+        traceback.print_exc(file=sys.stderr)
         return {
             "status": "ok",
             "result": req.image,
