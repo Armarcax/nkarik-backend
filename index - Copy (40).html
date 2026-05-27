@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ AI — Kid Studio</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+        
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 20%, #a1c4fd 40%, #c2e9fb 60%, #e0c3fc 80%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: rainbowBackground 20s ease infinite;
+            color: #1D1D1F; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 12px; 
+            padding-bottom: env(safe-area-inset-bottom, 24px);
+            overflow-y: auto; 
+        }
+
+        /* Dark Mode Global Overrides */
+        body.dark-mode {
+            background: linear-gradient(135deg, #111424 0%, #1c1421 30%, #0f1b29 60%, #111424 100%);
+            animation: none;
+            color: #F5F5F7;
+        }
+        body.dark-mode .app-card {
+            background: rgba(28, 28, 30, 0.94);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        body.dark-mode .accordion-section, 
+        body.dark-mode .library-section,
+        body.dark-mode .sliders-group,
+        body.dark-mode .lang-selector-row,
+        body.dark-mode .prompt-container,
+        body.dark-mode .prompt-input-area,
+        body.dark-mode .control-select,
+        body.dark-mode .color-system-container {
+            background: #2C2C2E;
+            border-color: #3A3A3C;
+            color: #F5F5F7;
+        }
+        body.dark-mode .accordion-header {
+            background: #3A3A3C;
+            color: #F5F5F7;
+        }
+        body.dark-mode .style-grid-item {
+            background: #3A3A3C;
+            color: #E5E5EA;
+            border-color: #48484A;
+        }
+        body.dark-mode .style-grid-item.active {
+            background: #1A3A5F;
+            color: #0A84FF;
+            border-color: #0A84FF;
+        }
+        body.dark-mode .toolbar-wrapper {
+            background: #2C2C2E;
+        }
+        body.dark-mode .tool-btn,
+        body.dark-mode .library-item {
+            background: #3A3A3C;
+            color: #F5F5F7;
+        }
+        body.dark-mode .hist-btn {
+            background: #48484A;
+            color: #F5F5F7;
+        }
+        body.dark-mode .canvas-area-wrapper {
+            background: #1C1C1E;
+        }
+        body.dark-mode .mic-btn {
+            background: #3A3A3C;
+            color: #A2A2A7;
+        }
+
+        .app-card { 
+            background: rgba(255, 255, 255, 0.96); 
+            backdrop-filter: blur(20px);
+            border-radius: 32px; 
+            padding: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06); 
+            max-width: 480px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            margin-bottom: 20px; 
+        }
+
+        .top-menu-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        h1 { 
+            font-size: 22px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #FF3B30, #FF9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .accordion-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .accordion-section {
+            border: 1px solid #E5E5EA;
+            border-radius: 16px;
+            background: #FFFFFF;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 12px 14px;
+            background: #F2F2F7;
+            border: none;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1D1D1F;
+            cursor: pointer;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            font-size: 10px;
+            color: #8E8E93;
+        }
+
+        .accordion-section.open .accordion-header::after {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.25s ease-out;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+        }
+
+        .accordion-section.open .accordion-content {
+            max-height: 320px;
+        }
+
+        .style-grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding: 10px;
+            background: #F2F2F7;
+        }
+        
+        .style-grid-item {
+            background: #FFFFFF;
+            border: 2px solid #E5E5EA;
+            border-radius: 12px;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .style-grid-item.active {
+            border-color: #007AFF;
+            background: #E8F2FF;
+            color: #007AFF;
+            font-weight: 700;
+        }
+        .style-grid-icon { font-size: 22px; }
+        .style-grid-label { font-size: 11px; text-align: center; }
+
+        .toolbar-wrapper {
+            background: #F2F2F7;
+            padding: 8px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tools-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 8px 4px;
+            border: none;
+            border-radius: 12px;
+            background: #FFFFFF;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            transition: all 0.1s ease;
+        }
+        .tool-btn.active {
+            background: #007AFF;
+            color: #FFFFFF;
+            transform: scale(1.02);
+        }
+
+        .sliders-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 14px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .canvas-area-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.04);
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: transparent;
+        }
+        .canvas-guide-overlay {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            opacity: 0.25;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .canvas-guide-overlay svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .library-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #E5E5EA;
+        }
+        .library-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .library-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #48484A;
+        }
+        .library-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .library-item {
+            flex: 0 0 65px;
+            height: 65px;
+            border: 2px solid #E5E5EA;
+            border-radius: 12px;
+            background: #FFFFFF;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .library-item.active {
+            border-color: #007AFF;
+            background: #E8F2FF;
+        }
+        .library-item svg {
+            width: 70%;
+            height: 70%;
+            stroke: #3A3A3C;
+            stroke-width: 4;
+            fill: none;
+        }
+        body.dark-mode .library-item svg { stroke: #F5F5F7; }
+        .library-item-label { font-size: 9px; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+        .color-system-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 18px;
+        }
+        .palette-row-kids {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .color-dot-kid {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease;
+        }
+        .color-dot-kid.active {
+            transform: scale(1.15);
+            border-color: #007AFF;
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.4);
+        }
+        .rainbow-toggle-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 2px solid #E5E5EA;
+            background: linear-gradient(45deg, #ff3b30, #ff9500, #4cd964, #5ac8fa, #5856d6);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .rainbow-toggle-btn.active {
+            border-color: #007AFF;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .control-select {
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid #E5E5EA;
+            font-size: 12px;
+            background: #FFFFFF;
+            outline: none;
+        }
+
+        /* Container for Textarea and Mic Button */
+        .prompt-container {
+            position: relative;
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #E5E5EA;
+            background: #FFFFFF;
+            overflow: hidden;
+        }
+
+        .prompt-input-area {
+            width: 100%;
+            padding: 10px;
+            padding-right: 46px; /* Space for microphone button */
+            border: none;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            height: 55px;
+            background: transparent;
+        }
+
+        .mic-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: #F2F2F7;
+            color: #555555;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+        .mic-btn.listening {
+            background: #FF3B30 !important;
+            color: #FFFFFF !important;
+            animation: pulseMic 1.2s infinite ease-in-out;
+        }
+        @keyframes pulseMic {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        .engine-status-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #E8F2FF;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #007AFF;
+        }
+
+        .action-grid {
+            display: flex;
+            gap: 10px;
+        }
+        .main-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-generate { background: linear-gradient(135deg, #34C759, #248A3D); }
+        .btn-video { background: linear-gradient(135deg, #007AFF, #0051A8); }
+        .main-btn:disabled { opacity: 0.5; }
+
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .output-media-box {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .output-media-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        @keyframes dynamicVideoPan {
+            0% { transform: scale(1.0); }
+            50% { transform: scale(1.18) translate(-10px, -8px); }
+            100% { transform: scale(1.0); }
+        }
+        .output-media-box img.animate-motion-active {
+            animation: dynamicVideoPan 4.5s infinite ease-in-out;
+        }
+
+        .history-row {
+            display: flex;
+            gap: 8px;
+        }
+        .hist-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            background: #E5E5EA;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .loading-view {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #007AFF;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #E5E5EA;
+            border-top-color: #007AFF;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .theme-toggle-btn {
+            background: #E5E5EA;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        body.dark-mode .theme-toggle-btn {
+            background: #3A3A3C;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="top-menu-bar">
+        <h1 id="appMainTitle">🎨 Նկարիկ AI</h1>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <select id="appLanguageSelect" class="control-select">
+                <option value="hy" selected>🇦🇲 HY</option>
+                <option value="en">🇺🇸 EN</option>
+                <option value="ru">🇷🇺 RU</option>
+            </select>
+            <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleDarkMode()">🌙 Mode</button>
+        </div>
+    </div>
+
+    <div class="library-section">
+        <div class="library-header-row">
+            <span class="library-title" id="lblLibraryTitle">✨ Ուրվագծեր (Trace Templates)</span>
+            <select id="templateCategorySelect" class="control-select" style="padding: 2px 4px; font-size: 11px;">
+                <option value="all">🌟 Բոլորը</option>
+                <option value="objects">🧸 Պատկերներ</option>
+                <option value="numbers">🔢 Թվեր</option>
+                <option value="hy_letters">🇦🇲 Տառեր (HY)</option>
+                <option value="en_letters">🇺🇸 Letters (EN)</option>
+                <option value="ru_letters">🇷🇺 Буквы (RU)</option>
+                <option value="bird_letters">🦅 Թռչնատառ</option>
+            </select>
+        </div>
+        <div class="library-scroll" id="templateLibraryContainer"></div>
+    </div>
+
+    <div class="engine-status-badge">
+        <span>🤖 Shape Matrix:</span>
+        <span id="engineStatusText">Waiting for strokes...</span>
+    </div>
+
+    <div class="canvas-area-wrapper" id="canvasWrapper">
+        <div class="canvas-guide-overlay" id="canvasGuideOverlay"></div>
+        <canvas id="paintCanvas"></canvas>
+    </div>
+
+    <div class="toolbar-wrapper">
+        <div class="tools-row">
+            <button class="tool-btn active" id="tPencil" onclick="setTool('pencil')">✏️ <span id="txtPencil">Մատիտ</span></button>
+            <button class="tool-btn" id="tBrush" onclick="setTool('brush')">🖌️ <span id="txtBrush">Վրձին</span></button>
+            <button class="tool-btn" id="tPen" onclick="setTool('pen')">🖊️ <span id="txtPen">Գրիչ</span></button>
+            <button class="tool-btn" id="tEraser" onclick="setTool('eraser')">🧼 <span id="txtEraser">Ռետին</span></button>
+            <button class="tool-btn" style="color:#FF3B30;" onclick="clearCanvas()">🗑️ <span id="txtClear">Ջնջել</span></button>
+        </div>
+
+        <div class="sliders-group">
+            <div class="slider-container">
+                <span id="lblSize">Չափս:</span>
+                <input type="range" id="brushSize" min="2" max="60" value="10">
+                <span id="brushSizeVal">10px</span>
+            </div>
+            <div class="slider-container">
+                <span id="lblOpacity">Թափանցիկություն:</span>
+                <input type="range" id="brushOpacity" min="10" max="100" value="100">
+                <span id="brushOpacityVal">100%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="color-system-container">
+        <div class="palette-row-kids" id="paletteRowKids"></div>
+    </div>
+
+    <div class="accordion-container">
+        <div class="accordion-section" id="styleAccordionSection">
+            <button class="accordion-header" onclick="toggleAccordion()" id="lblStyleHeader">🎨 Ընտրել Նկարչության Ոճը</button>
+            <div class="accordion-content">
+                <div class="style-grid-container" id="styleGridSelector"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="prompt-container">
+        <textarea class="prompt-input-area" id="promptInput" placeholder="Գրիր այստեղ կամ խոսիր միկրոֆոնով..."></textarea>
+        <button id="micVoiceBtn" class="mic-btn" title="Ձայնային հրահանգ">🎙️</button>
+    </div>
+
+    <div class="action-grid">
+        <button class="main-btn btn-generate" id="generateBtn">🚀 <span id="txtGenPic">Նկարել</span></button>
+        <button class="main-btn btn-video" id="videoBtn">🎬 <span id="txtGenVid">Անիմացիա</span></button>
+    </div>
+
+    <div class="loading-view" id="loadingText">
+        <div class="spinner"></div>
+        <span id="lblProcessing">Մշակվում է...</span>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <div class="output-media-box">
+            <img id="resultImg" alt="AI Output Screen" />
+        </div>
+        <div class="history-row">
+            <button class="hist-btn" style="background:#007AFF; color:#FFF;" id="downloadBtn">💾 Ներբեռնել</button>
+            <button class="hist-btn" id="newBtn">✨ Նորը</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const UI_STRINGS = {
+            hy: {
+                pencil: "Մատիտ", brush: "Վրձին", pen: "Գրիչ", eraser: "Ռետին", clear: "Ջնջել", processing: "Մշակվում է...",
+                alertFail: "Հարցումը ձախողվեց: Խնդրում ենք փորձել կրկին:", voicePlaceholder: "Գրիր այստեղ կամ խոսիր միկրոֆոնով..."
+            },
+            en: {
+                pencil: "Pencil", brush: "Brush", pen: "Pen", eraser: "Eraser", clear: "Clear", processing: "Processing...",
+                alertFail: "Request failed. Please try again!", voicePlaceholder: "Type here or speak to mic..."
+            },
+            ru: {
+                pencil: "Карандаш", brush: "Кисть", pen: "Ручка", eraser: "Ластик", clear: "Стереть", processing: "Магия...",
+                alertFail: "Ошибка соединения. Попробуйте еще раз!", voicePlaceholder: "Пишите здесь или говорите в микрофон..."
+            }
+        };
+
+        const DICTIONARY_MAP = {
+            "խնձոր": "apple", "ձուկ": "fish", "ձկնիկ": "cute fish", "կատու": "cat", "շուն": "dog", "շունիկ": "puppy dog",
+            "մեքենա": "car", "ավտո": "car", "տուն": "house", "տնակ": "cozy little house", "ծառ": "tree", "արև": "sun", 
+            "ամպ": "cloud", "ամպիկ": "fluffy cloud", "թիթեռ": "butterfly", "ծաղիկ": "flower", "նապաստակ": "rabbit", 
+            "արջուկ": "teddy bear", "գնդակ": "ball", "նավակ": "boat", "աստղ": "star", "լուսին": "moon", 
+            "հեծանիվ": "bicycle", "աղվես": "fox", "առյուծ": "lion", "փիղ": "elephant", "ձի": "horse",
+            "яблоко": "apple", "рыба": "fish", "рыбка": "cute fish", "кошка": "cat", "кот": "cat", "собака": "dog", 
+            "собачка": "puppy dog", "машина": "car", "дом": "house", "домик": "cozy little house", "дерево": "tree", 
+            "солнышко": "sun", "солнце": "sun", "облако": "cloud", "облачко": "fluffy cloud", "бабочка": "butterfly", 
+            "цветок": "flower", "зайчик": "rabbit", "заяц": "rabbit", "мишка": "teddy bear", "медведь": "bear", 
+            "мяч": "ball", "кораблик": "boat", "лодка": "boat", "звезда": "star", "луна": "moon", "лиса": "fox"
+        };
+
+        let currentLanguage = 'hy';
+        let activeTool = 'pencil';
+        let currentColor = '#FF3B30';
+        let brushSize = 10;
+        let brushOpacity = 100;
+        let isDrawing = false;
+        let isRainbowMode = false;
+        let rainbowHue = 0;
+
+        let isProcessingAI = false;
+        let lastGenerationTime = 0;
+        const GENERATION_COOLDOWN_MS = 2500; 
+
+        const KIDS_COLORS = [
+            '#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#FF2D55', '#AF52DE', '#1D1D1F', '#8E8E93'
+        ];
+
+        const ART_STYLES = [
+            // --- SIMPLE CARTOON / KIDS STYLES ---
+            { id: 'cartoon', label: 'Cartoon 🧸', prompt: 'cute cheerful cartoon style simple lines' },
+            { id: 'crayon', label: 'Crayon 🖍️', prompt: 'bright child crayon drawing whimsical scribbles' },
+            { id: 'sticker', label: 'Sticker ✨', prompt: 'cute die-cut sticker graphic white border vector format' },
+            { id: 'claymation', label: 'Claymation 🎭', prompt: 'cute plasticine clay model animation character design' },
+            { id: 'pixel', label: 'Pixel 👾', prompt: 'retro 8bit clean cute pixel art flat icon asset' },
+            { id: 'anime', label: 'Anime ⚡', prompt: 'studio ghibli style anime cheerful fantasy artwork' },
+            { id: 'coloring_book', label: 'Coloring 📖', prompt: 'bold thick black outline coloring book page for toddlers' },
+            { id: 'flat_vector', label: 'Flat Vector 🦄', prompt: 'simple minimalist flat vector art bright solid shapes' },
+            { id: 'felt_craft', label: 'Felt Craft 🧵', prompt: 'stitched colorful felt fabric cutout craft layout' },
+            { id: 'chalk', label: 'Chalk Art ⬜', prompt: 'blackboard school chalk colorful basic drawings sketch' },
+            { id: 'glow_dark', label: 'Glow Dark 🌙', prompt: 'bioluminescent neon glowing magical fantasy graphics for children' },
+            { id: 'low_poly', label: 'Low Poly 💎', prompt: 'vivid modern simple low-poly 3d vector graphic asset' },
+            { id: 'kawaii', label: 'Kawaii 🌸', prompt: 'ultra cute Japanese kawaii style illustration soft pastel tones' },
+            { id: 'doodle', label: 'Doodle ✏️', prompt: 'playful quirky hand-drawn line doodle concept happy vibe' },
+            { id: 'paper_cutout', label: 'Papercraft ✂️', prompt: '3D layered multi-colored construction paper cut craft layout' },
+            
+            // --- DETAILED / ADULT / REALISTIC STYLES ---
+            { id: 'realistic', label: 'Realistic 📸', prompt: 'clean vivid professional photography commercial lighting portrait' },
+            { id: 'watercolor', label: 'Watercolor 🎨', prompt: 'soft fine art detailed pastel watercolor painting illustration' },
+            { id: 'oil_paint', label: 'Oil Painting 🖼️', prompt: 'vibrant texturized professional impasto oil painting masterpiece artwork' },
+            { id: 'charcoal', label: 'Charcoal 🖤', prompt: 'soft fine architectural charcoal blended artistic dramatic sketch' },
+            { id: 'pencil_sketch', label: 'Sketch 📝', prompt: 'highly detailed fine pencil artistic precise graphite drawing concept' },
+            { id: 'cyberpunk', label: 'Cyberpunk 🌆', prompt: 'intricate cinematic hyper-detailed futuristic sci-fi neon artwork' },
+            { id: 'popart', label: 'Pop Art 🍿', prompt: 'bold professional pop art comic style lines halftone textures' },
+            { id: 'mosaic', label: 'Mosaic 🧩', prompt: 'ancient complex colorful decorative ceramic tile mosaic layout pattern' },
+            { id: 'origami', label: 'Orig Origami 📐', prompt: 'geometric complex folded Japanese origami paper structural craft design' },
+            { id: 'digital_airbrush', label: 'Airbrush 💨', prompt: 'smooth hyper-vivid glossy industrial airbrush fine illustration' },
+            { id: 'psychedelic', label: 'Vivid Retro 🍭', prompt: 'complex whimsical 70s colorful pop design surreal format' },
+            { id: 'stained_glass', label: 'Glass Art ⛪', prompt: 'vibrant custom stained glass window graphic segments gothic luxury' },
+            { id: 'abstract', label: 'Abstract 🌀', prompt: 'vivid dynamic non-representational creative museum modern expressionism' },
+            { id: 'van_gogh', label: 'Van Gogh 🌻', prompt: 'starry night dynamic sweeping heavy brushstrokes impressionism theme' },
+            { id: 'isometric', label: '3D Block 🧊', prompt: 'detailed dynamic architectural isometric 3d voxel block asset' },
+            { id: 'u_e', label: 'Ukiyo-e 🌊', prompt: 'classic Japanese traditional woodblock professional art print style' },
+            { id: 'futuristic', label: 'Futuristic 🚀', prompt: 'clean high-tech space concept illustration digital design layout' },
+            { id: 'vintage_comic', label: 'Retro Comic 📚', prompt: 'vintage golden-age comic book print ink dots structural texture' },
+            { id: 'gothic_oil', label: 'Gothic Dark 🏰', prompt: 'moody dramatic atmospheric classical oil painting dark academic style' },
+            { id: 'art_deco', label: 'Art Deco ⚜️', prompt: '1920s luxurious geometric ornament gold and sleek lines illustration' },
+            { id: 'steampunk', label: 'Steampunk ⚙️', prompt: 'industrial brass gears intricate machinery Victorian engine concept sketch' }
+        ];
+
+        let selectedStyle = 'cartoon';
+
+        const GUIDED_TEMPLATES = [
+            // Objects
+            { id: "apple", cat: "objects", label: { hy: "Խնձոր", en: "Apple", ru: "Яблоко" }, svg: `<svg viewBox="0 0 100 100"><path d="M50,35 C40,25 20,30 20,55 C20,80 40,85 50,80 C60,85 80,80 80,55 C80,30 60,25 50,35 Z" /><path d="M50,35 C48,25 55,18 58,15" /><path d="M54,24 C60,20 68,22 70,25 C68,30 58,30 54,24 Z" /></svg>` },
+            { id: "fish", cat: "objects", label: { hy: "Ձկնիկ", en: "Fish", ru: "Рыбка" }, svg: `<svg viewBox="0 0 100 100"><path d="M15,50 C30,25 70,25 85,50 C70,75 30,75 15,50 Z M85,50 L95,65 L90,50 L95,35 Z M30,45 A3,3 0 1,0 30,46 Z" /></svg>` },
+            { id: "cat", cat: "objects", label: { hy: "Կատու", en: "Cat", ru: "Кошка" }, svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="25" /><circle cx="50" cy="28" r="18" /><path d="M35,15 L32,28 L45,22 Z M65,15 L68,28 L55,22 Z M42,26 A2,2 0 1,0 42,27 Z M58,26 A2,2 0 1,0 58,27 Z M46,31 Q50,34 54,31 M25,55 Q5,55 15,75 M75,55 Q95,55 85,75" /></svg>` },
+            { id: "dog", cat: "objects", label: { hy: "Շունիկ", en: "Dog", ru: "Собачка" }, svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" /><path d="M28,35 C20,35 22,60 28,55 Z M72,35 C80,35 78,60 72,55 Z M40,45 A2.5,2.5 0 1,0 40,46 Z M60,45 A2.5,2.5 0 1,0 60,46 Z M45,52 Q50,56 55,52 M50,53 L50,62 Q42,66 40,75 M50,62 Q58,66 60,75" /></svg>` },
+            { id: "car", cat: "objects", label: { hy: "Մեքենա", en: "Car", ru: "Машина" }, svg: `<svg viewBox="0 0 100 100"><path d="M15,65 L25,45 L65,45 L75,55 L88,55 L90,65 Z M30,65 A8,8 0 1,0 30,66 Z M70,65 A8,8 0 1,0 70,66 Z" /></svg>` },
+            { id: "house", cat: "objects", label: { hy: "Տնակ", en: "House", ru: "Домик" }, svg: `<svg viewBox="0 0 100 100"><rect x="25" y="45" width="50" height="40" /><polygon points="20,45 50,15 80,45" /><rect x="42" y="60" width="16" height="25" /><rect x="32" y="50" width="12" height="12" /><rect x="56" y="50" width="12" height="12" /></svg>` },
+            { id: "tree", cat: "objects", label: { hy: "Ծառ", en: "Tree", ru: "Дерево" }, svg: `<svg viewBox="0 0 100 100"><rect x="45" y="65" width="10" height="25" /><circle cx="50" cy="50" r="20" /><circle cx="38" cy="38" r="16" /><circle cx="62" cy="38" r="16" /></svg>` },
+            { id: "sun", cat: "objects", label: { hy: "Արև", en: "Sun", ru: "Солнышко" }, svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="18" /><path d="M50,10 L50,22 M50,78 L50,90 M10,50 L22,50 M78,50 L90,50 M22,22 L31,31 M69,69 L78,78 M22,69 L31,61 M69,31 L78,22" /></svg>` },
+            { id: "cloud", cat: "objects", label: { hy: "Ամպիկ", en: "Cloud", ru: "Облако" }, svg: `<svg viewBox="0 0 100 100"><path d="M25,65 A12,12 0 0,1 30,42 A18,18 0 0,1 65,38 A15,15 0 0,1 80,53 Z" /></svg>` },
+            { id: "butterfly", cat: "objects", label: { hy: "Թիթեռ", en: "Butterfly", ru: "Бабочка" }, svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="3" ry="25" /><path d="M47,35 C25,10 10,35 47,48 Z" /><path d="M53,35 C75,10 90,35 53,48 Z" /></svg>` },
+            // Numbers
+            { id: "num_0", cat: "numbers", label: { hy: "0", en: "0", ru: "0" }, svg: `<svg viewBox="0 0 100 100"><rect x="30" y="20" width="40" height="60" rx="20" /></svg>` },
+            { id: "num_1", cat: "numbers", label: { hy: "1", en: "1", ru: "1" }, svg: `<svg viewBox="0 0 100 100"><path d="M35,32 L50,20 L50,80 M35,80 L65,80" /></svg>` },
+            { id: "num_2", cat: "numbers", label: { hy: "2", en: "2", ru: "2" }, svg: `<svg viewBox="0 0 100 100"><path d="M25,30 C25,15 75,15 75,40 C75,65 25,80 25,80 L75,80" /></svg>` },
+            { id: "num_3", cat: "numbers", label: { hy: "3", en: "3", ru: "3" }, svg: `<svg viewBox="0 0 100 100"><path d="M25,25 C25,10 75,10 75,38 C75,52 55,55 50,55 C55,55 75,58 75,72 C75,90 25,90 25,75" /></svg>` },
+            { id: "num_7", cat: "numbers", label: { hy: "7", en: "7", ru: "7" }, svg: `<svg viewBox="0 0 100 100"><path d="M25,25 L75,25 L45,80 M35,50 L65,50" /></svg>` },
+            // Armenian Letters
+            { id: "hy_A", cat: "hy_letters", label: { hy: "Ա", en: "A", ru: "А" }, svg: `<svg viewBox="0 0 100 100"><path d="M30,75 L30,35 C30,20 70,20 70,35 L70,75 M30,55 L70,55" /></svg>` },
+            { id: "hy_B", cat: "hy_letters", label: { hy: "Բ", en: "B", ru: "Б" }, svg: `<svg viewBox="0 0 100 100"><path d="M35,25 L55,25 C65,25 65,42 55,42 L35,42 L35,75 L60,75" /></svg>` },
+            // English Letters
+            { id: "en_A", cat: "en_letters", label: { hy: "A", en: "A", ru: "A" }, svg: `<svg viewBox="0 0 100 100"><path d="M25,80 L50,20 L75,80 M35,60 L65,60" /></svg>` },
+            { id: "en_B", cat: "en_letters", label: { hy: "B", en: "B", ru: "B" }, svg: `<svg viewBox="0 0 100 100"><path d="M30,20 L55,20 C68,20 68,40 55,40 C68,40 68,80 55,80 L30,80 Z M30,40 L55,40" /></svg>` },
+            // Russian Letters
+            { id: "ru_A", cat: "ru_letters", label: { hy: "А", en: "А", ru: "А" }, svg: `<svg viewBox="0 0 100 100"><path d="M25,80 L50,20 L75,80 M35,60 L65,60" /></svg>` },
+            { id: "ru_B", cat: "ru_letters", label: { hy: "Б", en: "Б", ru: "Б" }, svg: `<svg viewBox="0 0 100 100"><path d="M65,22 L35,22 L35,78 C35,78 65,78 65,60 C65,45 35,45 35,45" /></svg>` },
+            // Bird Letters
+            { id: "bird_A", cat: "bird_letters", label: { hy: "Ա (Թռչն)", en: "A (Bird)", ru: "Ա (Птиц)" }, svg: `<svg viewBox="0 0 100 100"><path d="M35,75 C25,50 35,25 50,25 C65,25 75,50 65,75" /><path d="M50,25 Q40,10 30,18 Q40,25 50,25" /><path d="M42,50 Q50,45 58,50" /></svg>` }
+        ];
+
+        let activeTemplateId = null;
+
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const canvasGuideOverlay = document.getElementById('canvasGuideOverlay');
+        const templateLibraryContainer = document.getElementById('templateLibraryContainer');
+        const templateCategorySelect = document.getElementById('templateCategorySelect');
+        const styleGridSelector = document.getElementById('styleGridSelector');
+        const paletteRowKids = document.getElementById('paletteRowKids');
+        
+        const brushSizeInput = document.getElementById('brushSize');
+        const brushOpacityInput = document.getElementById('brushOpacity');
+        const promptInput = document.getElementById('promptInput');
+        const engineStatusText = document.getElementById('engineStatusText');
+        const loadingText = document.getElementById('loadingText');
+        const resultPanel = document.getElementById('resultPanel');
+        const resultImg = document.getElementById('resultImg');
+        const generateBtn = document.getElementById('generateBtn');
+        const videoBtn = document.getElementById('videoBtn');
+
+        function setupCanvasLayout() {
+            const rect = canvasWrapper.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            clearCanvasSpace();
+        }
+
+        function clearCanvasSpace() {
+            ctx.fillStyle = "rgba(255,255,255,0)";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.clearCanvas = function() {
+            clearCanvasSpace();
+            engineStatusText.innerText = "Canvas cleared. Waiting for strokes...";
+        };
+
+        window.setTool = function(tool) {
+            activeTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            const elementMap = { pencil: 'tPencil', brush: 'tBrush', pen: 'tPen', eraser: 'tEraser' };
+            if (elementMap[tool]) document.getElementById(elementMap[tool]).classList.add('active');
+        };
+
+        function renderPalettes() {
+            paletteRowKids.innerHTML = "";
+            KIDS_COLORS.forEach(color => {
+                const dot = document.createElement('div');
+                dot.className = `color-dot-kid ${currentColor === color && !isRainbowMode ? 'active' : ''}`;
+                dot.style.backgroundColor = color;
+                dot.onclick = () => {
+                    isRainbowMode = false;
+                    currentColor = color;
+                    document.querySelectorAll('.color-dot-kid, .rainbow-toggle-btn').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                };
+                paletteRowKids.appendChild(dot);
+            });
+
+            const rainbowBtn = document.createElement('button');
+            rainbowBtn.className = `rainbow-toggle-btn ${isRainbowMode ? 'active' : ''}`;
+            rainbowBtn.innerText = "🌈 Ծիածան";
+            rainbowBtn.onclick = () => {
+                isRainbowMode = true;
+                document.querySelectorAll('.color-dot-kid').forEach(d => d.classList.remove('active'));
+                rainbowBtn.classList.add('active');
+            };
+            paletteRowKids.appendChild(rainbowBtn);
+        }
+
+        function renderVisualStyleGrid() {
+            styleGridSelector.innerHTML = "";
+            ART_STYLES.forEach(style => {
+                const item = document.createElement('div');
+                item.className = `style-grid-item ${selectedStyle === style.id ? 'active' : ''}`;
+                item.onclick = () => {
+                    selectedStyle = style.id;
+                    document.querySelectorAll('.style-grid-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                };
+                
+                const iconSpan = document.createElement('span');
+                iconSpan.className = "style-grid-icon";
+                iconSpan.innerText = style.label.split(' ')[1] || "🎨";
+                
+                const labelSpan = document.createElement('span');
+                labelSpan.className = "style-grid-label";
+                labelSpan.innerText = style.label.split(' ')[0];
+
+                item.appendChild(iconSpan);
+                item.appendChild(labelSpan);
+                styleGridSelector.appendChild(item);
+            });
+        }
+
+        function renderGuidedTraceLibrary() {
+            templateLibraryContainer.innerHTML = "";
+            const catFilter = templateCategorySelect.value;
+            
+            const filtered = GUIDED_TEMPLATES.filter(t => catFilter === 'all' || t.cat === catFilter);
+            
+            filtered.forEach(tmpl => {
+                const item = document.createElement('div');
+                item.className = `library-item ${activeTemplateId === tmpl.id ? 'active' : ''}`;
+                item.innerHTML = `${tmpl.svg}<div class="library-item-label">${tmpl.label[currentLanguage]}</div>`;
+                item.onclick = () => {
+                    if (activeTemplateId === tmpl.id) {
+                        activeTemplateId = null;
+                        canvasGuideOverlay.innerHTML = "";
+                        engineStatusText.innerText = "Template removed. Free doodle mode.";
+                    } else {
+                        activeTemplateId = tmpl.id;
+                        canvasGuideOverlay.innerHTML = tmpl.svg;
+                        engineStatusText.innerText = `Guided trace active: [${tmpl.label[currentLanguage]}]`;
+                    }
+                    document.querySelectorAll('.library-item').forEach(i => i.classList.remove('active'));
+                    if (activeTemplateId) item.classList.add('active');
+                };
+                templateLibraryContainer.appendChild(item);
+            });
+        }
+
+        window.toggleAccordion = function() {
+            document.getElementById('styleAccordionSection').classList.toggle('open');
+        };
+
+        function startPaint(e) {
+            isDrawing = true;
+            ctx.beginPath();
+            const pos = getVectorCoords(e);
+            ctx.moveTo(pos.x, pos.y);
+            if (engineStatusText.innerText.includes("Waiting") || engineStatusText.innerText.includes("cleared")) {
+                engineStatusText.innerText = "Capturing user sketch trajectories...";
+            }
+        }
+
+        function drawPaint(e) {
+            if (!isDrawing) return;
+            const pos = getVectorCoords(e);
+            
+            ctx.lineTo(pos.x, pos.y);
+            
+            if (activeTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = brushSize * 1.5;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.lineWidth = brushSize;
+                
+                if (isRainbowMode) {
+                    rainbowHue = (rainbowHue + 2) % 360;
+                    ctx.strokeStyle = `hsl(${rainbowHue}, 95%, 55%)`;
+                } else {
+                    ctx.strokeStyle = currentColor;
+                }
+            }
+
+            ctx.globalAlpha = brushOpacity / 100;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+        }
+
+        function stopPaint() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        function getVectorCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function transformPromptToEnglish(rawText) {
+            if (!rawText) return "";
+            let clean = rawText.toLowerCase().trim();
+            if (DICTIONARY_MAP[clean]) {
+                return DICTIONARY_MAP[clean];
+            }
+            return rawText;
+        }
+
+        // --- ՈՒՂՂՎԱԾ ԳԵՆԵՐԱՑՄԱՆ ՏՐԱՄԱԲԱՆՈՒԹՅՈՒՆԸ (FIXED processAI) ---
+        async function processAI(isVideoMode = false) {
+            if (isProcessingAI) return;
+            const currentTime = Date.now();
+            const timePassed = currentTime - lastGenerationTime;
+            if (timePassed < GENERATION_COOLDOWN_MS) {
+                const waitTime = GENERATION_COOLDOWN_MS - timePassed;
+                setTimeout(() => processAI(isVideoMode), waitTime);
+                return;
+            }
+            isProcessingAI = true;
+            lastGenerationTime = Date.now();
+            generateBtn.disabled = true;
+            videoBtn.disabled = true;
+            loadingText.style.display = 'block';
+
+            let canvasDataUri = "";
+            try {
+                canvasDataUri = canvas.toDataURL("image/png");
+            } catch(e) {
+                canvasDataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+            }
+
+            const userRawText = promptInput.value.trim().replace(/["']/g, "");
+            const optimizedEnglishPrompt = transformPromptToEnglish(userRawText);
+            const styleObj = ART_STYLES.find(s => s.id === selectedStyle) || ART_STYLES[0];
+
+            // --- ՔԱՅԼ 1: ՃՇԳՐԻՏ ՀԱՅՏՆԱԲԵՐՄԱՆ ՏՐԱՄԱԲԱՆՈՒԹՅՈՒՆ (DETECTION LOGIC) ---
+            let detectedType = "free doodle"; // Նախնական լռելյայն տարբերակ
+            let characterValue = "";
+
+            if (activeTemplateId) {
+                // Ստուգում ենք ընտրված ուրվագծի (template) կատեգորիան
+                const tmpl = GUIDED_TEMPLATES.find(t => t.id === activeTemplateId);
+                if (tmpl) {
+                    if (tmpl.cat === "hy_letters" || tmpl.cat === "en_letters" || tmpl.cat === "ru_letters" || tmpl.cat === "bird_letters") {
+                        detectedType = "letter";
+                        characterValue = tmpl.id.split('_')[1] || tmpl.id;
+                    } else if (tmpl.cat === "numbers") {
+                        detectedType = "number";
+                        characterValue = tmpl.id.split('_')[1] || tmpl.id;
+                    } else if (tmpl.cat === "objects") {
+                        detectedType = "object/shape";
+                    }
+                }
+            } else if (userRawText) {
+                // Եթե ուրվագիծ ընտրված չէ, վերլուծում ենք տեքստային դաշտը (1 նիշի դեպքում)
+                if (userRawText.length === 1) {
+                    const char = userRawText;
+                    if (/[0-9]/.test(char)) {
+                        detectedType = "number";
+                        characterValue = char;
+                    } else if (/[\s\w\d]/i.test(char) === false && !/[\u0531-\u0556\u0561-\u0587\u0400-\u04FF]/.test(char)) {
+                        detectedType = "symbol";
+                        characterValue = char;
+                    } else {
+                        detectedType = "letter";
+                        characterValue = char;
+                    }
+                }
+            }
+
+            // Թարմացնում ենք կարգավիճակի վահանակը թափանցիկության համար
+            engineStatusText.innerText = `Detected Matrix: [${detectedType.toUpperCase()}] processing...`;
+
+            // --- ՔԱՅԼ 2: ՊՐՈՄՓԹԵՐԻ ԵՎ ՄՈԴԵՐԻ ԲԱԺԱՆՈՒՄ (PIPELINE ROUTING) ---
+            let childFriendlyPrompt = "";
+
+            // Ա. Տիպոգրաֆիկ/character մոդ (Միայն տառերի, թվերի և նշանների համար)
+            if (detectedType === "letter" || detectedType === "number" || detectedType === "symbol") {
+                if (activeTemplateId && activeTemplateId.startsWith("bird_")) {
+                    childFriendlyPrompt = `medieval ornate Armenian bird-letter Trchnatar manuscript illuminating art style for the character [${characterValue}], ${styleObj.prompt}, detailed miniature calligraphy, zoomorphic animal illumination`;
+                } else {
+                    childFriendlyPrompt = `decorative stylized creative typography design art for the character [${characterValue}], beautiful ornate artistic visual rendering of letter or number, ${styleObj.prompt}`;
+                }
+            } 
+            // Բ. Օրիգինալ բնականոն պատկերների/օբյեկտների մոդ (Ձկներ, կենդանիներ, իրեր, doodle, ազատ նկարներ)
+            else {
+                const baseType = activeTemplateId ? GUIDED_TEMPLATES.find(t => t.id === activeTemplateId)?.id : "whimsical illustration";
+                
+                if (optimizedEnglishPrompt) {
+                    childFriendlyPrompt = `cute cheerful ${optimizedEnglishPrompt}, ${styleObj.prompt}, lovely happy child painting aesthetic`;
+                } else {
+                    childFriendlyPrompt = `friendly illustration of a ${baseType}, ${styleObj.prompt}, clear clean object depiction`;
+                }
+            }
+
+            const encodedPrompt = encodeURIComponent(childFriendlyPrompt);
+            const randomSeed = Math.floor(Math.random() * 9999999);
+            const width = 512;
+            const height = 512;
+            let targetUrl = `https://image.pollinations.ai/p/${encodedPrompt}?width=${width}&height=${height}&seed=${randomSeed}&nofeed=true`;
+
+            tryFetchImage(targetUrl, isVideoMode, childFriendlyPrompt, 1);
+        }
+
+        async function tryFetchImage(url, isVideoMode, promptString, attemptNumber) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("HTTP-error code: " + response.status);
+                
+                const blob = await response.blob();
+                const localObjectURL = URL.createObjectURL(blob);
+                
+                renderAIFinalResult(localObjectURL, isVideoMode, promptString);
+            } catch (err) {
+                if (attemptNumber < 3) {
+                    setTimeout(() => tryFetchImage(url, isVideoMode, promptString, attemptNumber + 1), 1000);
+                } else {
+                    alert(UI_STRINGS[currentLanguage].alertFail);
+                    resetAILoadingState();
+                }
+            }
+        }
+
+        function renderAIFinalResult(mediaUrl, isVideo, promptUsed) {
+            resetAILoadingState();
+            resultPanel.style.display = "flex";
+            resultImg.src = mediaUrl;
+            
+            if (isVideo) {
+                resultImg.classList.add("animate-motion-active");
+            } else {
+                resultImg.classList.remove("animate-motion-active");
+            }
+
+            document.getElementById('downloadBtn').onclick = () => {
+                const a = document.createElement('a');
+                a.href = mediaUrl;
+                a.download = `nkarik_ai_${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+
+            resultPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetAILoadingState() {
+            isProcessingAI = false;
+            generateBtn.disabled = false;
+            videoBtn.disabled = false;
+            loadingText.style.display = 'none';
+        }
+
+        // Voice Recognition System (Single Mic Button Interface)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            document.getElementById('micVoiceBtn').onclick = () => {
+                const btn = document.getElementById('micVoiceBtn');
+                if (btn.classList.contains('listening')) {
+                    recognition.stop();
+                } else {
+                    let recLang = "hy-AM";
+                    if (currentLanguage === "en") recLang = "en-US";
+                    if (currentLanguage === "ru") recLang = "ru-RU";
+                    recognition.lang = recLang;
+                    recognition.start();
+                }
+            };
+
+            recognition.onstart = () => {
+                document.getElementById('micVoiceBtn').classList.add('listening');
+            };
+
+            recognition.onresult = (event) => {
+                const speechToText = event.results[0][0].transcript;
+                promptInput.value = speechToText;
+            };
+
+            recognition.onerror = () => {
+                document.getElementById('micVoiceBtn').classList.remove('listening');
+            };
+
+            recognition.onend = () => {
+                document.getElementById('micVoiceBtn').classList.remove('listening');
+            };
+        } else {
+            document.getElementById('micVoiceBtn').style.display = "none";
+        }
+
+        document.getElementById('newBtn').onclick = () => {
+            resultPanel.style.display = "none";
+            resultImg.src = "";
+            clearCanvasSpace();
+            promptInput.value = "";
+            engineStatusText.innerText = "Ready for new drawing art cycles.";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        generateBtn.onclick = () => processAI(false);
+        videoBtn.onclick = () => processAI(true);
+
+        canvas.addEventListener('mousedown', startPaint);
+        canvas.addEventListener('mousemove', drawPaint);
+        canvas.addEventListener('mouseup', stopPaint);
+        canvas.addEventListener('mouseout', stopPaint);
+
+        canvas.addEventListener('touchstart', (e) => { startPaint(e); drawPaint(e); });
+        canvas.addEventListener('touchmove', drawPaint);
+        canvas.addEventListener('touchend', stopPaint);
+
+        renderPalettes();
+        renderVisualStyleGrid();
+        renderGuidedTraceLibrary();
+        
+        brushSizeInput.oninput = (e) => {
+            brushSize = parseInt(e.target.value);
+            document.getElementById('brushSizeVal').innerText = `${brushSize}px`;
+        };
+        brushOpacityInput.oninput = (e) => {
+            brushOpacity = parseInt(e.target.value);
+            document.getElementById('brushOpacityVal').innerText = `${brushOpacity}%`;
+        };
+
+        document.getElementById('appLanguageSelect').onchange = (e) => {
+            currentLanguage = e.target.value;
+            document.getElementById('lblProcessing').innerText = UI_STRINGS[currentLanguage].processing;
+            promptInput.placeholder = UI_STRINGS[currentLanguage].voicePlaceholder;
+            renderGuidedTraceLibrary();
+        };
+
+        templateCategorySelect.onchange = () => {
+            renderGuidedTraceLibrary();
+        };
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('themeToggleBtn').innerText = isDark ? "☀️ Light" : "🌙 Mode";
+        };
+
+        setTimeout(setupCanvasLayout, 150);
+    })();
+</script>
+</body>
+</html>

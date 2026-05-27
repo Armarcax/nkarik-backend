@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ AI — Ultimate Education Studio</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+        
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 20%, #a1c4fd 40%, #c2e9fb 60%, #e0c3fc 80%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: rainbowBackground 20s ease infinite;
+            color: #1D1D1F; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .app-card { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 32px; 
+            padding: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06); 
+            max-width: 480px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            margin-bottom: 20px; 
+            transition: all 0.3s ease; 
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6c5ce7, #a1c4fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lang-select {
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: white;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Կատեգորիաների և Ոճերի Տողեր */
+        .styleTabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .tmpl-tabs, .style-tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tmpl-tabs::-webkit-scrollbar, .style-tabs::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            padding: 8px 14px;
+            border-radius: 16px;
+            border: none;
+            background: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .tab-btn.active {
+            background: #6c5ce7;
+            color: white;
+            transform: scale(1.04);
+        }
+
+        .style-btn {
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-direction: column;
+        }
+        .style-btn.active {
+            background: #00b894;
+            color: white;
+            border-color: #00b894;
+            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.25);
+            transform: scale(1.03);
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #636e72;
+            margin-bottom: -4px;
+            padding-left: 2px;
+        }
+
+        .tmpl-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-height: 230px;
+            overflow-y: auto;
+            padding: 4px;
+            border-radius: 18px;
+            background: rgba(0,0,0,0.02);
+        }
+
+        .tmpl-item {
+            background: white;
+            border-radius: 16px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .tmpl-item:active, .tmpl-item.selected {
+            border-color: #6c5ce7;
+            background: #f4f1fe;
+            transform: scale(0.96);
+        }
+        .tmpl-item svg {
+            width: 55px;
+            height: 55px;
+            background: #fafafa;
+            border-radius: 10px;
+        }
+        .tmpl-item span {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            color: #444;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.03);
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.8);
+            touch-action: none;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: transparent;
+            cursor: crosshair;
+            z-index: 2;
+        }
+
+        .bg-svg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.25;
+            transition: opacity 0.3s;
+            z-index: 1;
+        }
+
+        .tool-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.03);
+            padding: 8px;
+            border-radius: 20px;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .color-palette::-webkit-scrollbar { display: none; }
+
+        .color-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .color-dot.active {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 2px #6c5ce7;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-round {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .btn-round:active { transform: scale(0.9); }
+
+        .main-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-primary {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(108,92,231,0.3);
+            transition: all 0.2s;
+        }
+        .btn-primary:disabled { background: #b2bec3; box-shadow: none; }
+        .btn-secondary { background: #00b894; box-shadow: 0 8px 20px rgba(0,184,148,0.3); }
+
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .result-wrapper {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 28px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .result-img, video { width: 100%; height: 100%; object-fit: cover; }
+        
+        .loading-box {
+            display: none;
+            text-align: center;
+            font-weight: 700;
+            color: #6c5ce7;
+            padding: 10px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <header>
+        <div class="brand">
+            <h1>🎨 Նկարիկ AI</h1>
+        </div>
+        <select class="lang-select" id="langSelect">
+            <option value="hy">Հայերեն</option>
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+        </select>
+    </header>
+
+    <div class="tmpl-tabs">
+        <button class="tab-btn active" data-cat="animals">🐱 <span data-key="cat_animals">Կենդանիներ</span></button>
+        <button class="tab-btn" data-cat="food">🍏 <span data-key="cat_food">Ուտելիք</span></button>
+        <button class="tab-btn" data-cat="vehicles">🚗 <span data-key="cat_vehicles">Մեքենաներ</span></button>
+        <button class="tab-btn" data-cat="nature">🌞 <span data-key="cat_nature">Բնություն</span></button>
+        <button class="tab-btn" data-cat="toys">🧸 <span data-key="cat_toys">Խաղալիքներ</span></button>
+    </div>
+
+    <div class="section-label" id="styleLabel">✨ Ընտրիր նկարի ոճը.</div>
+    <div class="style-tabs" id="styleTabs"></div>
+
+    <div class="tmpl-grid" id="tmplGrid"></div>
+
+    <div class="canvas-container">
+        <svg class="bg-svg-layer" id="bgSvg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+        <canvas id="paintCanvas"></canvas>
+    </div>
+
+    <div class="tool-bar">
+        <div class="color-palette" id="palette"></div>
+        <div class="action-btns">
+            <button class="btn-round" id="undoBtn">↩️</button>
+            <button class="btn-round" id="clearBtn">🗑️</button>
+        </div>
+    </div>
+
+    <div class="loading-box" id="loadingText">✨ Magic is happening...</div>
+
+    <div class="main-actions">
+        <button class="btn-primary" id="generateBtn">🔮 AI Պատկեր</button>
+        <button class="btn-primary btn-secondary" id="videoBtn">🎬 AI Վիդեո</button>
+    </div>
+</div>
+
+<div class="app-card result-panel" id="resultPanel">
+    <h2 style="font-size: 18px; font-weight:700;" id="resultTitle">Քո հրաշքը պատրաստ է</h2>
+    <div class="result-wrapper">
+        <img class="result-img" id="resultImg" alt="AI Result" style="display:none;">
+        <video id="videoFake" autoplay loop muted playsinline style="display:none;"></video>
+    </div>
+    <div class="main-actions">
+        <button class="btn-primary" id="downloadBtn">💾 Պահպանել</button>
+        <button class="btn-primary btn-secondary" id="newBtn">✨ Նոր Նկար</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const UI_STRINGS = {
+            hy: {
+                cat_animals: "Կենդանիներ", cat_food: "Ուտելիք", cat_vehicles: "Մեքենաներ",
+                cat_nature: "Բնություն", cat_toys: "Խաղալիքներ", loading: "✨ Կախարդանքը ընթացքի մեջ է...",
+                resultTitle: "Քո հրաշքը պատրաստ է", alertSelect: "Խնդրում ենք ընտրել որևէ կաղապար նախքան սկսելը",
+                alertFail: "Օյ, կապի խնդիր եղավ, կրկին փորձիր", style_label: "✨ Ընտրիր նկարի ոճը."
+            },
+            en: {
+                cat_animals: "Animals", cat_food: "Food", cat_vehicles: "Vehicles",
+                cat_nature: "Nature", cat_toys: "Toys", loading: "✨ Magic is happening...",
+                resultTitle: "Your Masterpiece is Ready", alertSelect: "Please select a template first!",
+                alertFail: "Oops! Generation timed out. Try again!", style_label: "✨ Choose drawing style:"
+            },
+            ru: {
+                cat_animals: "Животные", cat_food: "Еда", cat_vehicles: "Машины",
+                cat_nature: "Природа", cat_toys: "Игрушки", loading: "✨ Магия происходит...",
+                resultTitle: "Твой шедевр готов", alertSelect: "Пожалуйста, выберите шаблон сначала!",
+                alertFail: "Ой, ошибка генерации. Попробуйте еще раз!", style_label: "✨ Выбери стиль рисунка:"
+            }
+        };
+
+        // Ոճերի տվյալների բազա (STYLE_CATEGORIES)
+        const STYLE_CATEGORIES = {
+           kids: [
+                { id: 'pixar', badge: '🚀', hy: 'Պիքսար 3D', en: 'Pixar Inspired', ru: 'Пиксар 3D', prompt: 'cute Pixar 3D style character, smooth rendered lighting, claymation vibrant product design' },
+                { id: 'disney', badge: '👑', hy: 'Դիսնեյ', en: 'Disney Inspired', ru: 'Дисней', prompt: 'classic modern Disney animation style, rich magical background, expressive eyes' },
+                { id: 'kawaii', badge: '🌸', hy: 'Կավայի', en: 'Cute Kawaii', ru: 'Кавайи', prompt: 'adorable Japanese kawaii aesthetics, pastel colors, tiny smile, soft minimalist art' },
+                { id: 'bird_letter', badge: '🦅', hy: 'Թռչնատառ', en: 'Bird-Letter', ru: 'Птичий шрифт', prompt: 'traditional ornate Armenian Bird-Letter (Թռչնատառ) manuscript style, ancient miniature illumination, decorative gold accents' },
+                { id: 'plush', badge: '🧸', hy: 'Պլյուշ', en: 'Plush Toy', ru: 'Плюшевый', prompt: 'soft textured plush toy style, felt fabric details, cute stuffed animal texture' },
+                { id: 'crayon', badge: '🖍️', hy: 'Կավիճ', en: 'Crayon Sketch', ru: 'Мелки', prompt: 'vibrant child drawing sketch, wax crayon texture, playful arts and crafts background' },
+                { id: 'candy', badge: '🍬', hy: 'Քաղցրավենիք', en: 'Candy Style', ru: 'Конфетный', prompt: 'sweet glossy candy wonderland style, vibrant sugar coat colors' },
+                { id: 'bubble', badge: '🧼', hy: 'Փուչիկներ', en: 'Bubble Cartoon', ru: 'Пузыри', prompt: 'bubbly round 3D vector cartoon illustration, glossy simple clay' },
+                { id: 'bigeyes', badge: '👀', hy: 'Խոշոր աչքեր', en: 'Big Eyes Cartoon', ru: 'Большие глаза', prompt: 'big expressive shiny eyes baby cartoon design' },
+                { id: 'coloring', badge: '📖', hy: 'Գունազարդում', en: 'Toddler Coloring', ru: 'Раскраска', prompt: 'clean solid colors with thick black outlines, toddler learning book style' },
+                { id: 'nursery', badge: '🏡', hy: 'Մանկասենյակ', en: 'Nursery Style', ru: 'Детская комната', prompt: 'sweet whimsical nursery wallpaper art, soft warm pencil textures' },
+                { id: 'rainbow', badge: '🌈', hy: 'Ծիածան', en: 'Rainbow Style', ru: 'Радужный', prompt: 'magical vibrant rainbow color scheme overlay' },
+                { id: 'funnyfood', badge: '🍔', hy: 'Ուրախ ուտելիք', en: 'Funny Food Style', ru: 'Веселая еда', prompt: 'adorable living food item with tiny hands and joyful expressions' },
+                { id: 'babycartoon', badge: '👶', hy: 'Մանկական', en: 'Baby Cartoon', ru: 'Малыш Мультик', prompt: 'very simple clean character design for infants' },
+                { id: 'pastelkids', badge: '🎨', hy: 'Մեղմ գուաշ', en: 'Soft Pastel Kids', ru: 'Нежная пастель', prompt: 'delicate light pastel palette drawing, gentle gouache' },
+                { id: 'cookie', badge: '🍪', hy: 'Թխվածքաբլիթ', en: 'Cookie Cartoon', ru: 'Печенье', prompt: 'baked warm golden cookie textured overlay, cute frosting outlines' },
+                { id: 'cuteanimal', badge: '🦊', hy: 'Սիրուն կենդանիներ', en: 'Cute Animal Style', ru: 'Милые животные', prompt: 'charming fluffy baby animal art style, fantasy fairytale coloring' },
+                { id: 'smilingveggies', badge: '🥦', hy: 'Ժպտացող բանջարեղեն', en: 'Smiling Veggies', ru: 'Улыбающиеся овощи', prompt: 'healthy happy smiling animated vegetable character art' },
+                { id: 'toybox', badge: '📦', hy: 'Խաղաղատուփ', en: 'Toy Box Style', ru: 'Коробка игрушек', prompt: 'miniature toy collection look, plastic and wooden toy model shading' },
+                { id: 'kindergarten', badge: '🎒', hy: 'Մանկապարտեզ', en: 'Kindergarten Art', ru: 'Детский сад', prompt: 'innocent wax crayon and finger paint chaos style, raw child art' },
+                { id: 'puffy', badge: '☁️', hy: 'Փքված 3D', en: 'Puffy Cartoon', ru: 'Пухлый 3D', prompt: 'inflated puffy 3D sticker style, smooth claymation soft shadow' },
+                { id: 'chibi', badge: '🎎', hy: 'Չիբի անիմե', en: 'Chibi Kids', ru: 'Чиби', prompt: 'cute proportional chibi anime layout, large head, adorable features' }
+            ]
+        };
+
+        function S(p) { return `<path d="${p}" fill="none" stroke="#2d3436" stroke-width="4" stroke-linecap="round"/>`; }
+        function C(x,y,r) { return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#2d3436" stroke-width="4"/>`; }
+        function R(x,y,w,h,rx) { return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="none" stroke="#2d3436" stroke-width="4"/>`; }
+        function L(x1,y1,x2,y2) { return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2d3436" stroke-width="4" stroke-linecap="round"/>`; }
+
+        // Database Injection
+        const templates = [
+            // 🍎 FOOD & FRUITS (15)
+            {id:'apple', en:'Apple', hy:'Խնձոր', ru:'Яблоко', cat:'food', prompt:'cute cartoon apple for toddlers', svg: S('M250 140 Q270 120 290 140') + C(250,260,90) },
+            {id:'banana', en:'Banana', hy:'Բանան', ru:'Банан', cat:'food', prompt:'happy yellow banana illustration', svg: S('M180 180 Q250 120 320 180 Q280 280 250 320 Q220 280 180 180') },
+            {id:'orange', en:'Orange', hy:'Նարինջ', ru:'Апельсин', cat:'food', prompt:'simple orange fruit drawing', svg: C(250,250,80) + S('M250 170 L250 140 M240 180 L260 180') },
+            {id:'strawberry', en:'Strawberry', hy:'Ելակ', ru:'Клубника', cat:'food', prompt:'cute strawberry with leaves', svg: S('M200 180 L250 320 L300 180 Q250 150 200 180') + S('M250 150 Q230 120 270 120 Q290 150 250 150') + C(230,220,5)+C(270,220,5)+C(250,260,5) },
+            {id:'watermelon', en:'Watermelon', hy:'Ձմերուկ', ru:'Арбуз', cat:'food', prompt:'slice of watermelon cartoon', svg: S('M150 250 Q250 150 350 250 L150 250') + S('M150 250 L350 250') + S('M250 250 L250 210') + C(220,220,3)+C(280,220,3) },
+            {id:'grapes', en:'Grapes', hy:'Խաղող', ru:'Виноград', cat:'food', prompt:'bunch of grapes simple', svg: S('M250 140 L250 180') + C(230,190,20)+C(270,190,20)+C(220,220,20)+C(260,220,20)+C(240,250,20)+C(230,240,10)+C(260,260,10) },
+            {id:'pear', en:'Pear', hy:'Տանձ', ru:'Груша', cat:'food', prompt:'cute pear drawing', svg: S('M250 140 L250 160') + S('M250 160 Q220 200 210 260 Q250 320 290 260 Q280 200 250 160') },
+            {id:'peach', en:'Peach', hy:'Դեղձ', ru:'Персик', cat:'food', prompt:'soft peach fruit illustration', svg: S('M250 140 L250 160') + C(220,200,50)+C(280,200,50)+C(250,280,60) + S('M250 160 Q250 200 250 250') },
+            {id:'pineapple', en:'Pineapple', hy:'Անանաս', ru:'Ананас', cat:'food', prompt:'happy pineapple cartoon', svg: S('M250 320 L250 180') + R(210,180,80,120,20) + S('M250 180 Q230 140 210 120 M250 180 L250 110 M250 180 Q270 140 290 120') },
+            {id:'cherry', en:'Cherry', hy:'Բալ', ru:'Вишня', cat:'food', prompt:'two cherries on a stem', svg: L(250,180,220,250)+L(250,180,280,250) + C(220,260,15)+C(280,260,15)+S('M250 180 Q240 150 260 140') },
+            {id:'carrot', en:'Carrot', hy:'Գազար', ru:'Морковь', cat:'food', prompt:'orange carrot with leaves', svg: S('M250 140 L230 300 L270 300 L250 140') + S('M250 140 Q230 100 210 120 M250 140 L250 100 M250 140 Q270 100 290 120') },
+            {id:'tomato', en:'Tomato', hy:'Լոլիկ', ru:'Помидор', cat:'food', prompt:'cute red tomato', svg: C(250,260,80) + S('M250 180 Q230 150 270 150 Q290 180 250 180') },
+            {id:'cookie', en:'Cookie', hy:'Թխվածք', ru:'Печенье', cat:'food', prompt:'chocolate chip cookie simple', svg: C(250,250,90) + C(220,220,10)+C(280,240,10)+C(240,270,10)+C(270,280,8) },
+            {id:'pizza', en:'Pizza', hy:'Պիցցա', ru:'Пицца', cat:'food', prompt:'slice of pizza cartoon', svg: S('M150 180 L350 180 L250 320 L150 180') + C(220,220,8)+C(280,240,8)+C(250,260,8) },
+            {id:'icecream', en:'Ice Cream', hy:'Պաղպաղակ', ru:'Мороженое', cat:'food', prompt:'ice cream cone simple drawing', svg: S('M220 250 L280 250 L250 330 L220 250') + C(250,200,50) },
+
+            // 🐶 ANIMALS (15)
+            {id:'cat', en:'Cat', hy:'Կատու', ru:'Кошка', cat:'animals', prompt:'cute cat face for kids', svg: C(250,260,80)+S('M180 220 L150 140 L210 200 M320 220 L350 140 L290 200')+C(220,250,10)+C(280,250,10)+S('M230 280 Q250 290 270 280')+L(210,270,180,280)+L(290,270,320,280)+L(210,280,180,290)+L(290,280,320,290) },
+            {id:'dog', en:'Dog', hy:'Շուն', ru:'Собака', cat:'animals', prompt:'happy dog face cartoon', svg: C(250,260,80)+S('M180 200 Q160 150 210 180 M320 200 Q340 150 290 180')+C(220,250,12)+C(280,250,12)+S('M230 280 Q250 310 270 280')+S('M220 280 L220 320 L250 310 L280 320 L280 280') },
+            {id:'fish', en:'Fish', hy:'Ձուկ', ru:'Рыба', cat:'animals', prompt:'simple cartoon fish', svg: S('M180 250 Q250 150 320 250 Q250 350 180 250') + S('M320 250 L360 210 L360 290 L320 250') + C(220,230,8)+S('M200 250 Q220 260 200 270') },
+            {id:'bird', en:'Bird', hy:'Թռչուն', ru:'Птица', cat:'animals', prompt:'cute little bird simple', svg: C(250,250,60)+C(250,190,40)+S('M310 230 L340 200 L340 260 L310 270')+C(220,240,5)+S('M260 240 L290 250 L260 260') },
+            {id:'duck', en:'Duck', hy:'Բադ', ru:'Утка', cat:'animals', prompt:'yellow rubber duck style', svg: C(250,280,70)+C(250,210,50)+S('M320 220 L360 210 L360 230 L320 240')+C(220,260,8)+S('M180 310 L200 280 L220 310') },
+            {id:'rabbit', en:'Rabbit', hy:'Ճագար', ru:'Кролик', cat:'animals', prompt:'cute bunny face drawing', svg: C(250,280,70)+S('M210 220 L190 120 L230 200 M290 220 L310 120 L270 200')+C(220,260,10)+C(280,260,10)+S('M230 280 Q250 290 270 280')+C(240,295,5)+C(260,295,5) },
+            {id:'bear', en:'Bear', hy:'Արջ', ru:'Медведь', cat:'animals', prompt:'teddy bear face simple', svg: C(250,260,80)+C(190,200,30)+C(310,200,30)+C(220,250,12)+C(280,250,12)+S('M230 280 Q250 300 270 280')+C(250,265,15)+S('M240 260 L260 260') },
+            {id:'lion', en:'Lion', hy:'Առյուծ', ru:'Лев', cat:'animals', prompt:'cute lion face with mane', svg: C(250,250,70)+S('M250 250 L180 180 M250 250 L320 180 M250 250 L320 320 M250 250 L180 320 M250 250 L250 150 M250 250 L250 350 M250 250 L150 250 M250 250 L350 250')+C(220,240,8)+C(280,240,8)+S('M230 270 Q250 285 270 270') },
+            {id:'elephant', en:'Elephant', hy:'Փիղ', ru:'Слон', cat:'animals', prompt:'happy elephant with trunk', svg: C(250,250,80)+S('M180 220 L140 180 L200 200 M320 220 L360 180 L300 200')+C(220,250,10)+C(280,250,10)+S('M250 270 L250 330 Q250 350 230 350') },
+            {id:'monkey', en:'Monkey', hy:'Կապիկ', ru:'Обезьяна', cat:'animals', prompt:'cute monkey face cartoon', svg: C(250,250,80)+C(190,200,30)+C(310,200,30)+C(220,240,12)+C(280,240,12)+S('M230 270 Q250 290 270 270')+S('M210 260 Q250 240 290 260') },
+            {id:'panda', en:'Panda', hy:'Պանդա', ru:'Панда', cat:'animals', prompt:'baby panda face drawing', svg: C(250,250,80)+C(190,200,30)+C(310,200,30)+S('M220 220 Q240 210 260 230 Q240 250 220 220') + S('M280 220 Q300 210 320 230 Q300 250 280 220') + C(250,265,8)+S('M230 280 Q250 295 270 280') },
+            {id:'cow', en:'Cow', hy:'Կով', ru:'Корова', cat:'animals', prompt:'simple cow face with spots', svg: C(250,260,80)+S('M180 220 L160 180 L200 210 M320 220 L340 180 L300 200')+C(220,250,10)+C(280,250,10)+S('M230 280 Q250 300 270 280')+C(220,200,20)+C(280,280,15) },
+            {id:'pig', en:'Pig', hy:'Խոզ', ru:'Свинья', cat:'animals', prompt:'pink pig face cute', svg: C(250,260,80)+S('M180 220 L170 190 L200 210 M320 220 L330 190 L300 210')+C(220,250,8)+C(280,250,8)+S('M240 270 L260 270 L260 285 L240 285 Z') + L(240,277)+L(260,277) },
+            {id:'turtle', en:'Turtle', hy:'Կրիա', ru:'Черепаха', cat:'animals', prompt:'cute turtle cartoon', svg: C(250,250,90)+S('M180 200 Q160 180 140 200 M320 200 Q340 180 360 200 M180 300 Q160 320 140 300 M320 300 Q340 320 360 300 M250 340 Q270 360 250 380')+S('M180 200 L220 200 M320 200 L280 200 M180 300 L220 300 M320 300 L280 300') },
+            {id:'butterfly', en:'Butterfly', hy:'Թիթեռ', ru:'Бабочка', cat:'animals', prompt:'colorful butterfly simple', svg: S('M250 150 Q220 200 180 180 Q140 250 250 250 Q360 250 320 180 Q280 200 250 150') + L(250,150,250,350)+S('M250 150 Q230 140 250 130 Q270 140 250 150') },
+
+            // 🚗 VEHICLES (15)
+            {id:'car', en:'Car', hy:'Մեքենա', ru:'Машина', cat:'vehicles', prompt:'simple colorful car for kids', svg: R(120,240,260,100,20)+S('M160 240 L190 160 L310 160 L340 240')+C(180,340,35)+C(320,340,35)+R(200,260,100,40,5)+R(140,200,60,40,5)+R(300,200,40,40,5) },
+            {id:'bus', en:'Bus', hy:'Ավտոբուս', ru:'Автобус', cat:'vehicles', prompt:'yellow school bus cartoon', svg: R(100,200,300,160,20)+R(130,140,80,60,10)+R(290,140,80,60,10)+C(160,360,35)+C(340,360,35)+R(120,240,40,40,5)+R(180,240,40,40,5)+R(240,240,40,40,5) },
+            {id:'train', en:'Train', hy:'Գնացք', ru:'Поезд', cat:'vehicles', prompt:'cute steam train simple', svg: R(100,220,200,120,15)+R(140,180,120,40,5)+R(300,200,100,140,10)+L(100,340,400,340)+C(150,360,25)+C(250,360,25)+C(350,360,25)+S('M160 180 L160 140 L140 140') },
+            {id:'airplane', en:'Airplane', hy:'Ինքնաթիռ', ru:'Самолет', cat:'vehicles', prompt:'friendly airplane cartoon', svg: S('M150 250 Q250 150 350 250 Q250 350 150 250')+S('M250 200 L250 100 L300 150 L250 200')+S('M250 250 L250 300 L200 280 L250 250')+C(200,220,10)+C(240,220,10)+C(280,220,10) },
+            {id:'helicopter', en:'Helicopter', hy:'Ուղղաթիռ', ru:'Вертолет', cat:'vehicles', prompt:'simple helicopter drawing', svg: R(180,200,140,100,30)+S('M250 200 L250 100')+L(150,100,350,100)+R(150,280,200,40,10)+S('M320 250 L360 250 L360 280') },
+            {id:'bike', en:'Bicycle', hy:'Հեծանիվ', ru:'Велосипед', cat:'vehicles', prompt:'simple bicycle cartoon', svg: C(180,300,60)+C(320,300,60)+S('M180 300 L250 200 L320 300 M250 200 L220 240 L280 240 L320 300 M220 240 L180 300')+S('M240 180 L260 180 L250 200') },
+            {id:'boat', en:'Boat', hy:'Նավակ', ru:'Лодка', cat:'vehicles', prompt:'cute sailboat simple', svg: S('M150 250 Q250 280 350 250 L320 200 L180 200 L150 250')+L(250,200,250,100)+S('M250 100 L250 180 L320 200 L250 200') },
+            {id:'rocket', en:'Rocket', hy:'Հրթիռ', ru:'Ракета', cat:'vehicles', prompt:'space rocket cartoon kids', svg: S('M250 100 Q300 180 300 280 L200 280 Q200 180 250 100')+L(200,280,180,320,220,280)+L(300,280,320,320,280,280)+L(220,280,280,280)+C(250,180,20)+L(230,280,230,320,250,300,270,320,270,280) },
+            {id:'tractor', en:'Tractor', hy:'Տրակտոր', ru:'Трактор', cat:'vehicles', prompt:'farm tractor simple drawing', svg: R(120,220,160,100,15)+R(280,180,120,140,15)+C(160,320,50)+C(340,300,65)+L(280,240,320,240,320,200,280,200)+S('M120 220 L120 260 L80 260 L80 220 L120 220') },
+            {id:'policecar', en:'Police Car', hy:'Ոստիկանություն', ru:'Полиция', cat:'vehicles', prompt:'police car cartoon for kids', svg: R(120,240,260,100,20)+S('M160 240 L190 160 L310 160 L340 240')+C(180,340,35)+C(320,340,35)+R(200,260,100,40,5)+R(230,150,40,20,5)+L(230,150,250,130,270,150) },
+            {id:'firetruck', en:'Fire Truck', hy:'Հրշեջ', ru:'Пожарная', cat:'vehicles', prompt:'red fire truck simple', svg: R(100,220,180,120,15)+R(280,180,120,160,15)+C(160,340,35)+C(340,340,35)+L(280,200,340,200)+S('M100 220 L100 160 L280 160')+C(120,160,20)+R(280,200,40,40,5) },
+            {id:'ambulance', en:'Ambulance', hy:'Շտապ օգնություն', ru:'Скорая', cat:'vehicles', prompt:'ambulance van cartoon', svg: R(120,180,160,160,15)+R(280,220,100,120,15)+C(180,340,35)+C(320,340,35)+L(280,240,320,240,320,200,280,200)+S('M180 200 L220 200 L200 220 L200 260 L200 220 L160 220 L200 220') },
+            {id:'taxi', en:'Taxi', hy:'Տաքսի', ru:'Такси', cat:'vehicles', prompt:'yellow taxi cab simple', svg: R(120,240,260,100,20)+S('M160 240 L190 160 L310 160 L340 240')+C(180,340,35)+C(320,340,35)+R(200,260,100,40,5)+R(240,150,20,20,3) },
+            {id:'scooter', en:'Scooter', hy:'Սկուտեր', ru:'Самокат', cat:'vehicles', prompt:'kids scooter cartoon', svg: L(180,340,240,240,220,140)+L(150,140,220,140)+C(180,340,35)+C(220,340,35)+S('M220 340 L250 340') },
+            {id:'ship', en:'Ship', hy:'Նավ', ru:'Корабль', cat:'vehicles', prompt:'big cruise ship simple', svg: S('M100 280 Q250 320 400 280 L380 200 L120 200 L100 280')+L(250,200,250,120)+L(200,200,300,200)+L(180,150,250,150,250,120)+C(220,160,10)+C(250,160,10)+C(280,160,10) },
+
+            // 🌞 NATURE (15)
+            {id:'sun', en:'Sun', hy:'Արեւ', ru:'Солнце', cat:'nature', prompt:'smiling sun cartoon for toddlers', svg: C(250,250,80)+L(250,150,250,120)+L(250,350,250,380)+L(150,250,120,250)+L(350,250,380,250)+L(170,170,140,140)+L(330,330,360,360)+L(330,170,360,140)+L(170,330,140,360)+C(220,240,8)+C(280,240,8)+S('M220 270 Q250 290 280 270') },
+            {id:'moon', en:'Moon', hy:'Լուսին', ru:'Луна', cat:'nature', prompt:'cute crescent moon cartoon', svg: S('M250 120 Q150 250 250 380 Q180 250 250 120')+C(200,200,5)+C(220,260,5)+S('M200 240 Q220 250 240 240') },
+            {id:'cloud', en:'Cloud', hy:'Ամպ', ru:'Облако', cat:'nature', prompt:'fluffy white cloud simple', svg: S('M150 280 Q150 220 200 220 Q200 160 260 180 Q320 160 320 220 Q380 220 380 280 L150 280') },
+            {id:'rainbow', en:'Rainbow', hy:'Ծիածան', ru:'Радуга', cat:'nature', prompt:'colorful rainbow simple drawing', svg: S('M100 280 Q250 100 400 280')+S('M120 280 Q250 130 380 280')+S('M140 280 Q250 160 360 280')+S('M160 280 Q250 190 340 280') },
+            {id:'tree', en:'Tree', hy:'Ծառ', ru:'Дерево', cat:'nature', prompt:'simple green tree cartoon', svg: S('M250 320 L220 180 Q250 100 280 180 L250 320')+R(230,320,40,60,5)+S('M200 220 L300 220 M210 160 L290 160 M220 100 L280 100') },
+            {id:'flower', en:'Flower', hy:'Ծաղիկ', ru:'Цветок', cat:'nature', prompt:'cute simple flower drawing', svg: C(250,200,20)+C(250,300,20)+C(200,250,20)+C(300,250,20)+C(215,215,20)+C(285,215,20)+C(215,285,20)+C(285,285,20)+L(250,320,250,380)+S('M250 350 Q230 360 210 350') },
+            {id:'mountain', en:'Mountain', hy:'Սար', ru:'Гора', cat:'nature', prompt:'simple mountain with snow', svg: S('M100 320 L250 140 L400 320 L100 320')+S('M210 180 L250 140 L290 180 Z')+S('M250 140 L250 320')+S('M180 240 L320 240') },
+            {id:'star', en:'Star', hy:'Աստղ', ru:'Звезда', cat:'nature', prompt:'shooting star simple cartoon', svg: S('M250 100 L280 200 L380 200 L300 260 L330 360 L250 300 L170 360 L200 260 L120 200 L220 200 Z')+C(340,140,15)+C(360,160,10)+C(320,170,8) },
+            {id:'snowflake', en:'Snowflake', hy:'Ձնափաթիլ', ru:'Снежинка', cat:'nature', prompt:'beautiful snowflake simple', svg: L(250,120,250,380)+L(120,250,380,250)+L(150,150,350,350)+L(350,150,150,350)+S('M250 120 L230 150 L270 150 Z')+S('M250 380 L230 350 L270 350 Z')+S('M120 250 L150 230 L150 270 Z')+S('M380 250 L350 230 L350 270 Z')+C(200,180,5)+C(300,320,5)+C(180,320,5)+C(300,180,5) },
+            {id:'rain', en:'Rain', hy:'Անձրեւ', ru:'Дождь', cat:'nature', prompt:'rain clouds and drops', svg: S('M150 220 Q150 180 200 180 Q200 140 260 160 Q320 140 320 180 Q380 180 380 220 L150 220')+L(180,240,160,280)+L(220,240,200,280)+L(260,240,240,280)+L(300,240,280,280)+L(340,240,320,280)+C(200,290,3)+C(250,290,3)+C(300,290,3) },
+            {id:'tornado', en:'Tornado', hy:'Փոթորիկ', ru:'Торнадо', cat:'nature', prompt:'simple tornado swirl', svg: S('M250 100 Q150 150 280 200 Q200 250 300 300 Q250 350 250 380')+S('M250 120 L230 140 M250 120 L270 140')+S('M280 180 L260 200 M280 180 L300 200')+S('M200 240 L180 260 M200 240 L220 260') },
+            {id:'volcano', en:'Volcano', hy:'Հրաբուխ', ru:'Вулкан', cat:'nature', prompt:'erupting volcano cartoon', svg: S('M150 350 L220 200 L280 200 L350 350 L150 350')+S('M250 180 Q230 120 280 150 Q240 100 220 140 Q200 80 250 120 Q220 60 260 100')+C(250,220,15)+L(240,240,260,240)+L(230,260,270,260)+L(220,280,280,280) },
+            {id:'island', en:'Island', hy:'Կղզի', ru:'Остров', cat:'nature', prompt:'tropical island with palm', svg: S('M100 320 Q250 350 400 320 Q300 300 250 300 Q200 300 100 320')+L(250,300,250,150)+S('M250 150 Q200 120 180 160 Q200 100 250 120 Q220 180 250 150 Q300 180 250 150 Q280 120 250 100 Q300 100 320 160 Q300 120 250 150')+C(230,140,8)+C(270,140,8) },
+            {id:'waterfall', en:'Waterfall', hy:'Ջրվեժ', ru:'Водопад', cat:'nature', prompt:'simple waterfall cartoon', svg: R(150,100,200,100,10)+L(180,200,160,350,180,350)+L(220,200,200,350,220,350)+L(260,200,240,350,260,350)+L(300,200,280,350,300,350)+S('M150 350 Q250 380 350 350')+C(180,250,10)+C(250,250,10)+C(300,250,10) },
+            {id:'cave', en:'Cave', hy:'Քարայր', ru:'Пещера', cat:'nature', prompt:'simple cave entrance', svg: S('M100 320 Q100 150 250 150 Q400 150 400 320 L100 320')+S('M200 320 Q200 200 250 200 Q300 200 300 320 L200 320')+S('M150 220 L170 250 M350 220 L330 250')+C(250,180,15)+C(220,180,10)+C(280,180,10) },
+
+            // 🧸 TOYS & CUTE (15)
+            {id:'ball', en:'Ball', hy:'Գնդակ', ru:'Мяч', cat:'toys', prompt:'colorful striped ball simple', svg: C(250,250,90)+S('M250 160 Q280 250 250 340')+S('M160 250 Q250 280 340 250') },
+            {id:'teddy', en:'Teddy Bear', hy:'Արջուկ', ru:'Плюшевый мишка', cat:'toys', prompt:'cute teddy bear sitting', svg: C(250,220,60)+S('M190 180 L170 140 L210 170 M310 180 L330 140 L290 170')+C(220,210,8)+C(280,210,8)+S('M230 230 Q250 250 270 230')+R(200,260,100,100,30)+L(180,300,150,280)+L(320,300,350,280)+L(210,360,190,390,230,390)+L(290,360,310,390,270,390) },
+            {id:'balloon', en:'Balloon', hy:'Փուչիկ', ru:'Воздушный шар', cat:'toys', prompt:'simple balloon with string', svg: S('M250 350 Q200 200 250 120 Q300 200 250 350')+L(250,350,250,400)+S('M240 350 Q250 370 260 350')+C(250,180,15) },
+            {id:'blocks', en:'Blocks', hy:'Խորանարդ', ru:'Кубики', cat:'toys', prompt:'stacked building blocks', svg: R(220,200,60,60,5)+R(160,260,60,60,5)+R(280,260,60,60,5)+R(220,320,60,60,5)+C(250,230,8)+L(190,290,220,290,190,320)+S('M310 290 L310 320') },
+            {id:'kite', en:'Kite', hy:'Օդապարիկ', ru:'Воздушный змей', cat:'toys', prompt:'diamond kite cartoon', svg: S('M250 100 L350 250 L250 400 L150 250 Z')+L(250,400,280,380,250,360,270,390,250,400)+S('M250 100 Q230 80 250 60 Q270 80 250 100') },
+            {id:'robot', en:'Robot', hy:'Ռոբոտ', ru:'Робот', cat:'toys', prompt:'friendly box robot cartoon', svg: R(200,180,100,80,10)+R(180,260,140,100,15)+R(210,360,80,60,10)+C(230,210,10)+C(270,210,10)+L(150,280,180,280)+L(320,280,350,280)+S('M250 180 L250 150 L230 130 M250 150 L270 130')+C(250,130,5) },
+            {id:'doll', en:'Doll', hy:'Տիկնիկ', ru:'Кукла', cat:'toys', prompt:'simple ragdoll cartoon', svg: C(250,180,40)+R(200,220,100,120,30)+L(170,260,140,240,150,280,170,300)+L(330,260,360,240,350,280,330,300)+L(220,340,200,380,240,380)+L(280,340,300,380,260,380)+S('M220 170 L280 170 Q280 150 220 150 Z')+C(230,175,5)+C(270,175,5)+S('M240 190 Q250 200 260 190') },
+            {id:'drum', en:'Drum', hy:'Թմբուկ', ru:'Барабан', cat:'toys', prompt:'toy drum simple', svg: R(180,200,140,100,15)+R(170,200,160,30,10)+R(170,270,160,30,10)+S('M250 200 L250 300')+L(160,220,120,180,130,170,170,210)+L(340,220,380,180,370,170,330,210) },
+            {id:'puzzle', en:'Puzzle', hy:'Փազլ', ru:'Пазл', cat:'toys', prompt:'jigsaw puzzle piece simple', svg: S('M150 200 L200 200 Q200 180 220 180 Q240 180 240 200 L280 200 L280 250 Q260 250 260 270 Q260 290 280 290 L280 320 L220 320 L220 300 Q200 300 200 280 Q200 260 220 260 L180 260 L180 300 L150 300 L150 250 Q130 250 130 230 Q130 210 150 210 L150 200 Z') },
+            {id:'yo-yo', en:'Yo-Yo', hy:'Յո-յո', ru:'Йо-йо', cat:'toys', prompt:'classic yo-yo toy simple', svg: C(250,250,60)+C(250,250,60)+L(250,190,250,150)+C(230,150,15)+C(270,150,15)+S('M250 190 L220 320') },
+            {id:'skates', en:'Roller Skates', hy:'Գլորակներ', ru:'Ролики', cat:'toys', prompt:'roller skates cartoon', svg: R(200,200,100,80,15)+R(210,280,80,30,10)+C(220,330,25)+C(280,330,25)+L(220,200,220,160)+S('M220 160 L210 140 L240 150') },
+            {id:'guitar', en:'Guitar', hy:'Կիթառ', ru:'Гитара', cat:'toys', prompt:'acoustic guitar simple', svg: S('M250 100 Q280 150 250 200 Q220 250 250 300 Q280 350 250 400 Q220 350 250 300 Q280 250 250 200 Q220 150 250 100')+C(250,150,20)+L(250,130,250,90)+S('M240 100 L260 100 L250 130')+C(250,250,10)+C(250,350,10) },
+            {id:'crown', en:'Crown', hy:'Թագ', ru:'Корона', cat:'toys', prompt:'prince princess crown simple', svg: S('M150 300 L150 180 L200 240 L250 140 L300 240 L350 180 L350 300 Z')+C(150,220,8)+C(250,170,8)+C(350,220,8)+C(200,260,6)+C(300,260,6) },
+            {id:'magic', en:'Magic Wand', hy:'Կախարդական փայտիկ', ru:'Волшебная палочка', cat:'toys', prompt:'magic star wand toy', svg: L(250,350,250,150)+S('M250 150 L280 100 L220 100 L250 150 L220 200 L280 200 L250 150')+C(300,100,8)+C(320,140,6)+C(280,160,5) },
+            {id:'box', en:'Treasure Box', hy:'Գանձերի արկղ', ru:'Сундук', cat:'toys', prompt:'treasure chest simple cartoon', svg: R(150,220,200,120,10)+R(140,180,220,50,10)+L(150,220,150,270)+L(350,220,350,270)+C(250,220,20)+C(250,250,5)+S('M240 220 L260 220') }
+        ];
+
+
+        const colors = ['#FF3B30', '#FF9500', '#FFCC00', '#4CD964', '#5AC8FA', '#007AFF', '#5856D6', '#000000'];
+
+        let currentLanguage = 'hy';
+        let activeCategory = 'animals';
+        let selectedTemplate = null;
+        let activeStyle = STYLE_CATEGORIES.kids[0]; // State management: default active style
+        let currentColor = colors[0];
+        let isDrawing = false;
+        let pathsHistory = [];
+        let currentPath = [];
+
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgSvg = document.getElementById('bgSvg');
+        const tmplGrid = document.getElementById('tmplGrid');
+        const styleTabs = document.getElementById('styleTabs');
+        const styleLabel = document.getElementById('styleLabel');
+        const palette = document.getElementById('palette');
+        const langSelect = document.getElementById('langSelect');
+        const loadingText = document.getElementById('loadingText');
+        const generateBtn = document.getElementById('generateBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const resultPanel = document.getElementById('resultPanel');
+        const resultImg = document.getElementById('resultImg');
+        const videoFake = document.getElementById('videoFake');
+
+        function initCanvas() {
+            const size = canvas.parentElement.clientWidth;
+            canvas.width = size;
+            canvas.height = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 8;
+            redrawCanvas();
+        }
+
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) / rect.width,
+                y: (clientY - rect.top) / rect.height
+            };
+        }
+
+        function startDraw(e) {
+            isDrawing = true;
+            currentPath = [];
+            const coords = getCoords(e);
+            currentPath.push({ x: coords.x, y: coords.y, color: currentColor });
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCoords(e);
+            currentPath.push({ x: coords.x, y: coords.y, color: currentColor });
+            
+            ctx.beginPath();
+            const p1 = currentPath[currentPath.length - 2];
+            const p2 = currentPath[currentPath.length - 1];
+            ctx.strokeStyle = currentColor;
+            ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+            ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+            ctx.stroke();
+        }
+
+        function endDraw() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            if (currentPath.length > 0) {
+                pathsHistory.push(currentPath);
+            }
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pathsHistory.forEach(path => {
+                if (path.length < 2) return;
+                ctx.beginPath();
+                ctx.strokeStyle = path[0].color;
+                ctx.moveTo(path[0].x * canvas.width, path[0].y * canvas.height);
+                for (let i = 1; i < path.length; i++) {
+                    ctx.lineTo(path[i].x * canvas.width, path[i].y * canvas.height);
+                }
+                ctx.stroke();
+            });
+        }
+
+        function buildPalette() {
+            palette.innerHTML = '';
+            colors.forEach((color, i) => {
+                const dot = document.createElement('div');
+                dot.className = `color-dot ${i === 0 ? 'active' : ''}`;
+                dot.style.backgroundColor = color;
+                dot.onclick = () => {
+                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                    currentColor = color;
+                };
+                palette.appendChild(dot);
+            });
+        }
+
+        function renderTemplates() {
+            tmplGrid.innerHTML = '';
+            const filtered = templates.filter(t => t.cat === activeCategory);
+            filtered.forEach(tmpl => {
+                const item = document.createElement('div');
+                item.className = `tmpl-item ${selectedTemplate?.id === tmpl.id ? 'selected' : ''}`;
+                item.innerHTML = `
+                    <svg viewBox="0 0 500 500">${tmpl.svg}</svg>
+                    <span>${tmpl[currentLanguage]}</span>
+                `;
+                item.onclick = () => {
+                    document.querySelectorAll('.tmpl-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    selectedTemplate = tmpl;
+                    bgSvg.innerHTML = tmpl.svg;
+                };
+                tmplGrid.appendChild(item);
+            });
+        }
+
+        // ✅ ՈՒՂՂՎԱԾ Ոճերի տողի ավտոմատ գեներացում
+        function renderStyles() {
+            const styleTabs = document.getElementById('styleTabs');
+            if (!styleTabs) return;
+            
+            styleTabs.innerHTML = '';
+            styleTabs.style.display = 'grid';
+            styleTabs.style.gridTemplateColumns = 'repeat(auto-fill, minmax(100px, 1fr))';
+            styleTabs.style.gap = '10px';
+
+            STYLE_CATEGORIES.kids.forEach((style, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'style-btn';
+                if (index === 0) btn.classList.add('active'); // ✅ Առաջինը ակտիվ
+                btn.style.padding = '10px';
+                btn.style.cursor = 'pointer';
+                
+                btn.innerHTML = `<div style="font-size:18px">${style.badge}</div><div style="font-size:11px;text-align:center">${style[currentLanguage]}</div>`;
+                
+                btn.onclick = () => {
+                    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    // ✅ ՈՒՂՂՈՒՄ. Օգտագործում ենք activeStyle (ոչ selectedStyle)
+                    activeStyle = style;
+                    console.log("✅ Ընտրված ոճ՝", activeStyle.hy, "| Prompt:", activeStyle.prompt);
+                };
+                
+                styleTabs.appendChild(btn);
+            });
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (UI_STRINGS[lang][key]) el.textContent = UI_STRINGS[lang][key];
+            });
+            document.getElementById('resultTitle').textContent = UI_STRINGS[lang].resultTitle;
+            styleLabel.textContent = UI_STRINGS[lang].style_label;
+            renderTemplates();
+            renderStyles();
+        }
+
+        async function processAI(isVideoMode) {
+            if (!selectedTemplate) {
+                alert(UI_STRINGS[currentLanguage].alertSelect);
+                return;
+            }
+
+            loadingText.style.display = 'block';
+            loadingText.textContent = UI_STRINGS[currentLanguage].loading;
+            generateBtn.disabled = true;
+            videoBtn.disabled = true;
+
+            const basePrompt = selectedTemplate.prompt || 'cute child drawing';
+            // ✅ activeStyle.prompt-ը հիմա ճիշտ է թարմացվում
+            const enhancedPrompt = `child safety high quality, ${basePrompt}, ${activeStyle.prompt}`;
+            
+            const seed = Math.floor(Math.random() * 999999);
+            const url = isVideoMode 
+                ? `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt + ' motion dynamic animation loop')}-video?width=512&height=512&seed=${seed}`
+                : `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=512&height=512&seed=${seed}`;
+
+            tryFetchImage(url, isVideoMode, 1);
+        }
+
+        function tryFetchImage(url, isVideoMode, attempt) {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                loadingText.style.display = 'none';
+                generateBtn.disabled = false;
+                videoBtn.disabled = false;
+                resultPanel.style.display = 'flex';
+
+                if (isVideoMode) {
+                    resultImg.style.display = 'none';
+                    videoFake.style.display = 'block';
+                    videoFake.src = url;
+                } else {
+                    videoFake.style.display = 'none';
+                    resultImg.style.display = 'block';
+                    resultImg.src = url;
+                }
+                resultPanel.scrollIntoView({ behavior: 'smooth' });
+            };
+            img.onerror = () => {
+                if (attempt < 4) {
+                    setTimeout(() => tryFetchImage(url, isVideoMode, attempt + 1), 1500);
+                } else {
+                    loadingText.style.display = 'none';
+                    generateBtn.disabled = false;
+                    videoBtn.disabled = false;
+                    alert(UI_STRINGS[currentLanguage].alertFail);
+                }
+            };
+        }
+
+        document.getElementById('clearBtn').onclick = () => {
+            pathsHistory = [];
+            redrawCanvas();
+        };
+
+        document.getElementById('undoBtn').onclick = () => {
+            pathsHistory.pop();
+            redrawCanvas();
+        };
+
+        generateBtn.onclick = () => processAI(false);
+        videoBtn.onclick = () => processAI(true);
+
+        document.getElementById('downloadBtn').onclick = async () => {
+            const currentSrc = resultImg.style.display !== 'none' ? resultImg.src : videoFake.src;
+            try {
+                const res = await fetch(currentSrc);
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = window.URL.createObjectURL(blob);
+                a.download = `nkarik-ai-${Date.now()}.${resultImg.style.display !== 'none' ? 'png' : 'mp4'}`;
+                a.click();
+            } catch (e) {
+                window.open(currentSrc, '_blank');
+            }
+        };
+
+        document.getElementById('newBtn').onclick = () => {
+            resultPanel.style.display = 'none';
+            pathsHistory = [];
+            selectedTemplate = null;
+            bgSvg.innerHTML = '';
+            redrawCanvas();
+            renderTemplates();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeCategory = btn.getAttribute('data-cat');
+                renderTemplates();
+            };
+        });
+
+        langSelect.onchange = (e) => setLanguage(e.target.value);
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('mouseleave', endDraw);
+
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+        canvas.addEventListener('touchend', endDraw);
+
+        window.onload = () => {
+            buildPalette();
+            initCanvas();
+            renderTemplates();
+            renderStyles();
+            setLanguage('hy');
+        };
+        window.onresize = initCanvas;
+    })();
+</script>
+</body>
+</html>

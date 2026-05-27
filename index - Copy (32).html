@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ AI — Kid Studio</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+        
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 20%, #a1c4fd 40%, #c2e9fb 60%, #e0c3fc 80%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: rainbowBackground 20s ease infinite;
+            color: #1D1D1F; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 12px; 
+            padding-bottom: env(safe-area-inset-bottom, 24px);
+            overflow-y: auto; 
+        }
+
+        /* Dark Mode Global Overrides */
+        body.dark-mode {
+            background: linear-gradient(135deg, #111424 0%, #1c1421 30%, #0f1b29 60%, #111424 100%);
+            animation: none;
+            color: #F5F5F7;
+        }
+        body.dark-mode .app-card {
+            background: rgba(28, 28, 30, 0.94);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        body.dark-mode .accordion-section, 
+        body.dark-mode .library-section,
+        body.dark-mode .sliders-group,
+        body.dark-mode .lang-selector-row,
+        body.dark-mode .prompt-input-area,
+        body.dark-mode .control-select,
+        body.dark-mode .color-system-container {
+            background: #2C2C2E;
+            border-color: #3A3A3C;
+            color: #F5F5F7;
+        }
+        body.dark-mode .accordion-header {
+            background: #3A3A3C;
+            color: #F5F5F7;
+        }
+        body.dark-mode .style-grid-item {
+            background: #3A3A3C;
+            color: #E5E5EA;
+            border-color: #48484A;
+        }
+        body.dark-mode .style-grid-item.active {
+            background: #1A3A5F;
+            color: #0A84FF;
+            border-color: #0A84FF;
+        }
+        body.dark-mode .toolbar-wrapper {
+            background: #2C2C2E;
+        }
+        body.dark-mode .tool-btn,
+        body.dark-mode .library-item {
+            background: #3A3A3C;
+            color: #F5F5F7;
+        }
+        body.dark-mode .hist-btn {
+            background: #48484A;
+            color: #F5F5F7;
+        }
+        body.dark-mode .canvas-area-wrapper {
+            background: #1C1C1E;
+        }
+
+        .app-card { 
+            background: rgba(255, 255, 255, 0.96); 
+            backdrop-filter: blur(20px);
+            border-radius: 32px; 
+            padding: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06); 
+            max-width: 480px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            margin-bottom: 20px; 
+        }
+
+        .top-menu-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        h1 { 
+            font-size: 22px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #FF3B30, #FF9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .accordion-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .accordion-section {
+            border: 1px solid #E5E5EA;
+            border-radius: 16px;
+            background: #FFFFFF;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 12px 14px;
+            background: #F2F2F7;
+            border: none;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1D1D1F;
+            cursor: pointer;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            font-size: 10px;
+            color: #8E8E93;
+        }
+
+        .accordion-section.open .accordion-header::after {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.25s ease-out;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+        }
+
+        .accordion-section.open .accordion-content {
+            max-height: 260px;
+        }
+
+        .style-grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding: 10px;
+            background: #F2F2F7;
+        }
+        
+        .style-grid-item {
+            background: #FFFFFF;
+            border: 2px solid #E5E5EA;
+            border-radius: 12px;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .style-grid-item.active {
+            border-color: #007AFF;
+            background: #E8F2FF;
+            color: #007AFF;
+            font-weight: 700;
+        }
+        .style-grid-icon { font-size: 22px; }
+        .style-grid-label { font-size: 11px; text-align: center; }
+
+        .toolbar-wrapper {
+            background: #F2F2F7;
+            padding: 8px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tools-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 8px 4px;
+            border: none;
+            border-radius: 12px;
+            background: #FFFFFF;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            transition: all 0.1s ease;
+        }
+        .tool-btn.active {
+            background: #007AFF;
+            color: #FFFFFF;
+            transform: scale(1.02);
+        }
+
+        .sliders-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 14px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .canvas-area-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.04);
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: transparent;
+        }
+        .canvas-guide-overlay {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            opacity: 0.25;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .canvas-guide-overlay svg {
+            width: 100%;
+            height: 100%;
+            stroke: #8E8E93;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .library-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #E5E5EA;
+        }
+        .library-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #48484A;
+        }
+        .library-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .library-item {
+            flex: 0 0 65px;
+            height: 65px;
+            border: 2px solid #E5E5EA;
+            border-radius: 12px;
+            background: #FFFFFF;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .library-item.active {
+            border-color: #007AFF;
+            background: #E8F2FF;
+        }
+        .library-item svg {
+            width: 70%;
+            height: 70%;
+            stroke: #3A3A3C;
+            stroke-width: 4;
+            fill: none;
+        }
+        body.dark-mode .library-item svg { stroke: #F5F5F7; }
+        .library-item-label { font-size: 9px; font-weight: 700; }
+
+        /* Simplified Child-Friendly Color Studio Container */
+        .color-system-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #FFFFFF;
+            padding: 10px;
+            border-radius: 18px;
+        }
+        .palette-row-kids {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .color-dot-kid {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease;
+        }
+        .color-dot-kid.active {
+            transform: scale(1.15);
+            border-color: #007AFF;
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.4);
+        }
+        .rainbow-toggle-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 2px solid #E5E5EA;
+            background: linear-gradient(45deg, #ff3b30, #ff9500, #4cd964, #5ac8fa, #5856d6);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .rainbow-toggle-btn.active {
+            border-color: #007AFF;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .control-select {
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid #E5E5EA;
+            font-size: 12px;
+            background: #FFFFFF;
+            outline: none;
+        }
+
+        .prompt-input-area {
+            width: 100%;
+            padding: 10px;
+            border-radius: 14px;
+            border: 1px solid #E5E5EA;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            height: 55px;
+            background: #FFFFFF;
+        }
+
+        .engine-status-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #E8F2FF;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #007AFF;
+        }
+
+        .action-grid {
+            display: flex;
+            gap: 10px;
+        }
+        .main-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-generate { background: linear-gradient(135deg, #34C759, #248A3D); }
+        .btn-video { background: linear-gradient(135deg, #007AFF, #0051A8); }
+        .main-btn:disabled { opacity: 0.5; }
+
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .output-media-box {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .output-media-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Video Simulation Frame Pan Engine Animation Keys */
+        @keyframes dynamicVideoPan {
+            0% { transform: scale(1.0); }
+            50% { transform: scale(1.18) translate(-10px, -8px); }
+            100% { transform: scale(1.0); }
+        }
+        .output-media-box img.animate-motion-active {
+            animation: dynamicVideoPan 4.5s infinite ease-in-out;
+        }
+
+        .history-row {
+            display: flex;
+            gap: 8px;
+        }
+        .hist-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            background: #E5E5EA;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .loading-view {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #007AFF;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #E5E5EA;
+            border-top-color: #007AFF;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .theme-toggle-btn {
+            background: #E5E5EA;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        body.dark-mode .theme-toggle-btn { background: #3A3A3C; color: #FFFFFF; }
+    </style>
+</head>
+<body>
+<div class="app-card">
+    <div class="top-menu-bar">
+        <h1 id="appMainTitle">🎨 Նկարիկ AI</h1>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <select id="appLanguageSelect" class="control-select">
+                <option value="hy" selected>🇦🇲 HY</option>
+                <option value="en">🇺🇸 EN</option>
+                <option value="ru">🇷🇺 RU</option>
+            </select>
+            <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleDarkMode()">🌙 Mode</button>
+        </div>
+    </div>
+
+    <div class="library-section">
+        <span class="library-title" id="lblLibraryTitle">✨ Ուրվագծեր (Trace Templates)</span>
+        <div class="library-scroll" id="templateLibraryContainer"></div>
+    </div>
+
+    <div class="engine-status-badge">
+        <span>🤖 Shape Matrix:</span>
+        <span id="engineStatusText">Waiting for strokes...</span>
+    </div>
+
+    <div class="canvas-area-wrapper" id="canvasWrapper">
+        <div class="canvas-guide-overlay" id="canvasGuideOverlay"></div>
+        <canvas id="paintCanvas"></canvas>
+    </div>
+
+    <div class="toolbar-wrapper">
+        <div class="tools-row">
+            <button class="tool-btn active" id="tool-pencil" onclick="setTool('pencil')">✏️<span id="lblPencil">Pencil</span></button>
+            <button class="tool-btn" id="tool-brush" onclick="setTool('brush')">🖌️<span id="lblBrush">Brush</span></button>
+            <button class="tool-btn" id="tool-pen" onclick="setTool('pen')">🖊️<span id="lblPen">Pen</span></button>
+            <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">🧼<span id="lblEraser">Eraser</span></button>
+            <button class="tool-btn" style="background:#FFD6D6; color:#FF3B30;" onclick="clearCanvas()">🗑️<span id="lblClearAll">Clear</span></button>
+        </div>
+
+        <div class="sliders-group">
+            <div class="slider-container">
+                <span id="lblSize">Size</span>
+                <input type="range" id="brushSize" min="1" max="100" value="10">
+                <span id="brushSizeVal">10px</span>
+            </div>
+            <div class="slider-container" id="advancedSliderBlock">
+                <input type="color" id="compactColorPicker" style="width:24px; height:20px; border:none; background:none; cursor:pointer;" value="#2F80ED">
+                <span id="lblColorHue" style="font-size:11px; color:#8E8E93;">Hue Shifter</span>
+                <input type="range" id="brushOpacity" min="1" max="100" value="100">
+                <span id="brushOpacityVal">100%</span>
+            </div>
+        </div>
+
+        <div class="color-system-container">
+            <div class="palette-row-kids">
+                <div id="kidsMainColorsRow" style="display:flex; gap:6px; flex-wrap:wrap; flex:1;"></div>
+                <button id="rainbowModeToggle" class="rainbow-toggle-btn" onclick="toggleRainbowMode()">🌈 Rainbow</button>
+            </div>
+        </div>
+
+        <div class="history-row">
+            <button id="undoBtn" class="hist-btn" onclick="undo()">↩️ Undo</button>
+            <button id="redoBtn" class="hist-btn" onclick="redo()">↪️ Redo</button>
+        </div>
+    </div>
+
+    <div class="accordion-container">
+        <div class="accordion-section" id="styleAccordionSection">
+            <button class="accordion-header" onclick="toggleAccordion()" id="lblAccordionTitle">✨ Նկարչական Ոճեր (Art Styles)</button>
+            <div class="accordion-content">
+                <div class="style-grid-container" id="styleGridSelector"></div>
+            </div>
+        </div>
+    </div>
+
+    <textarea class="prompt-input-area" id="promptInput" placeholder="Գրիր մանրամասներ... (Optional details)"></textarea>
+
+    <div class="action-grid">
+        <button class="main-btn btn-generate" id="generateBtn">🚀 <span id="lblGenerate">Պատրաստել</span></button>
+        <button class="main-btn btn-video" id="videoBtn">🎬 <span id="lblVideo">Անիմացիա</span></button>
+    </div>
+
+    <div class="loading-view" id="loadingText">
+        <div class="spinner"></div>
+        <span id="lblProcessing">Մշակվում է... Սպասեք...</span>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <div class="output-media-box">
+            <img id="resultImg" src="" alt="AI Output Screen">
+        </div>
+        <div class="history-row">
+            <button id="downloadBtn" class="hist-btn" style="background:#E8F2FF; color:#007AFF;">💾 Save Art</button>
+            <button id="newBtn" class="hist-btn">🎨 New Canvas</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const UI_STRINGS = {
+            hy: { title: "🎨 Նկարիկ AI", pencil: "Մատիտ", brush: "Վրձին", pen: "Գրիչ", eraser: "Ռետին", clear: "Ջնջել", processing: "Մշակվում է..." },
+            en: { title: "🎨 Nkarik AI", pencil: "Pencil", brush: "Brush", pen: "Pen", eraser: "Eraser", clear: "Clear", processing: "Processing..." },
+            ru: { title: "🎨 Нкарик ИИ", pencil: "Карандаш", brush: "Кисть", pen: "Ручка", eraser: "Ластик", clear: "Стереть", processing: "Магия..." }
+        };
+
+        let currentLanguage = 'hy';
+        let activeTool = 'pencil';
+        let currentColor = '#FF3B30';
+        let brushSize = 10;
+        let brushOpacity = 100;
+        let isDrawing = false;
+        let activeTemplate = null;
+        let isRainbowMode = false;
+        let rainbowHue = 0;
+
+        // Exactly 10 clean, bright primary colors for kids
+        const KIDS_COLORS = [
+            '#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', 
+            '#5856D6', '#FF2D55', '#AF52DE', '#1D1D1F', '#8E8E93'
+        ];
+
+        // All 28 requested distinct visual styles fully preserved
+        const ART_STYLES = [
+            { id: 'cartoon', label: 'Cartoon 🧸', prompt: 'cute cheerful cartoon style' },
+            { id: 'anime', label: 'Anime ⚡', prompt: 'studio ghibli style anime artwork' },
+            { id: 'watercolor', label: 'Watercolor 🎨', prompt: 'soft pastel watercolor painting illustration' },
+            { id: 'realistic', label: 'Realistic 📸', prompt: 'highly detailed crisp realistic photography look' },
+            { id: 'pixel_art', label: 'Pixel Art 👾', prompt: 'retro 8-bit chunky pixel art aesthetic' },
+            { id: '3d_render', label: '3D Render 💎', prompt: 'glossy 3d render look, smooth claymation octane' },
+            { id: 'sketch', label: 'Sketch ✏️', prompt: 'hand-drawn textured graphite sketch lines' },
+            { id: 'oil_painting', label: 'Oil Painting 🖼️', prompt: 'thick impasto textured oil painting strokes' },
+            { id: 'fantasy', label: 'Fantasy 🦄', prompt: 'magical glowing fantasy wonderland scene' },
+            { id: 'cyberpunk', label: 'Cyberpunk 🌆', prompt: 'cyberpunk style with bright neon lighting elements' },
+            { id: 'clay_style', label: 'Clay Style 🧸', prompt: 'sculpted plasticine clay style modeling layout' },
+            { id: 'pixar_style', label: 'Pixar-style 🎬', prompt: '3D pixar disney character illumination rendering' },
+            { id: 'kids_illustration', label: 'Kids Illus. 📚', prompt: 'charming classic child storybook illustration art' },
+            { id: 'comic_style', label: 'Comic Style 💥', prompt: 'pop art vintage comic book look with halftone dots' },
+            { id: 'low_poly', label: 'Low Poly 📐', prompt: 'geometric low poly faceted design' },
+            { id: 'fantasy_illustration', label: 'Fantasy Illus. 🪄', prompt: 'whimsical fantasy fairy tale illustration blueprint' },
+            { id: 'cute_kawaii', label: 'Cute Kawaii 🌸', prompt: 'ultra cute Japanese kawaii theme pastel accents' },
+            { id: 'cinematic', label: 'Cinematic 🎞️', prompt: 'epic cinema movie frame lightning perspective perspective' },
+            { id: 'neon', label: 'Neon 🌟', prompt: 'glowing futuristic electric neon outline blueprint style' },
+            { id: 'hand_drawn', label: 'Hand-Drawn 🖍️', prompt: 'naive kid hand-drawn crayon marker art format' },
+            { id: 'graffiti', label: 'Graffiti 🎸', prompt: 'street art urban vivid spray paint graffiti concept' },
+            { id: 'minimalist', label: 'Minimalist 🤍', prompt: 'clean minimalist geometric outline drawing aesthetic' },
+            { id: 'storybook', label: 'Storybook 📖', prompt: 'cozy classic bedtime storybook artwork parameters' },
+            { id: 'fantasy_game_art', label: 'Game Art 🎮', prompt: 'vivid modern fantasy game asset design painting' },
+            { id: 'paper_craft', label: 'Paper Craft ✂️', prompt: 'layered paper craft design 3d dimensional shadows' },
+            { id: 'pastel', label: 'Pastel 🧁', prompt: 'chalk pastel blend textures soft colorful graphics' },
+            { id: 'ink_drawing', label: 'Ink Drawing ✒️', prompt: 'intricate black ink pen crosshatching design layout' },
+            { id: 'vector_art', label: 'Vector Art 📱', prompt: 'smooth flat vector graphic sticker icon format' }
+        ];
+
+        let selectedStyle = 'cartoon';
+
+        const GUIDED_TEMPLATES = {
+            fish: `<svg viewBox="0 0 100 100"><path d="M15,50 C30,25 70,25 85,50 C70,75 30,75 15,50 Z M85,50 L95,65 L90,50 L95,35 Z M30,45 A3,3 0 1,0 30,46 Z" /></svg>`,
+            cat: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="25" /><circle cx="50" cy="55" r="18" /><path d="M30,37 L28,15 L42,28 M70,37 L72,15 L58,28" /><circle cx="43" cy="50" r="2" /><circle cx="57" cy="50" r="2" /></svg>`,
+            dog: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" /><path d="M25,35 C20,45 22,65 28,60 M75,35 C80,45 78,65 72,60" /><circle cx="42" cy="45" r="2" /><circle cx="58" cy="45" r="2" /></svg>`,
+            tree: `<svg viewBox="0 0 100 100"><path d="M45,65 L45,90 L55,90 L55,65 Z" /><path d="M50,10 C30,30 35,50 25,65 L75,65 C65,50 70,30 50,10 Z" /></svg>`,
+            house: `<svg viewBox="0 0 100 100"><path d="M20,50 L20,90 L80,90 L80,50 Z" /><path d="M15,50 L50,15 L85,50 Z" /><rect x="42" y="65" width="16" height="25" /></svg>`,
+            car: `<svg viewBox="0 0 100 100"><path d="M10,70 L20,70 A10,10 0 0,1 40,70 L60,70 A10,10 0 0,1 80,70 L90,70 L90,55 M65,35 L30,35" /><circle cx="30" cy="70" r="8" /><circle cx="70" cy="70" r="8" /></svg>`,
+            fruit: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="25" /><path d="M50,30 Q55,15 65,18" /></svg>`,
+            sun: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="18" /><path d="M50,10 L50,22 M50,78 L50,90 M10,50 L22,50 M78,50 L90,50" /></svg>`,
+            cloud: `<svg viewBox="0 0 100 100"><path d="M25,65 A12,12 0 0,1 30,42 A18,18 0 0,1 65,38 A15,15 0 0,1 80,53 Z" /></svg>`,
+            butterfly: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="3" ry="25" /><path d="M47,35 C25,10 10,35 47,48 Z" /><path d="M53,35 C75,10 90,35 53,48 Z" /></svg>`
+        };
+
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const canvasGuideOverlay = document.getElementById('canvasGuideOverlay');
+        const engineStatusText = document.getElementById('engineStatusText');
+        const templateLibraryContainer = document.getElementById('templateLibraryContainer');
+        const styleGridSelector = document.getElementById('styleGridSelector');
+        const brushSizeInput = document.getElementById('brushSize');
+        const brushOpacityInput = document.getElementById('brushOpacity');
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const loadingText = document.getElementById('loadingText');
+        const resultPanel = document.getElementById('resultPanel');
+        const resultImg = document.getElementById('resultImg');
+
+        let undoStack = [];
+        let redoStack = [];
+
+        function saveHistory() {
+            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            if (undoStack.length > 20) undoStack.shift();
+            redoStack = [];
+        }
+
+        window.undo = function() {
+            if (undoStack.length > 0) {
+                redoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                ctx.putImageData(undoStack.pop(), 0, 0);
+            }
+        };
+
+        window.redo = function() {
+            if (redoStack.length > 0) {
+                undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                ctx.putImageData(redoStack.pop(), 0, 0);
+            }
+        };
+
+        function setupCanvasLayout() {
+            const size = canvasWrapper.clientWidth;
+            canvas.width = size;
+            canvas.height = size;
+            clearCanvas(false);
+        }
+
+        window.clearCanvas = function(resetHistory = true) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "transparent";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (resetHistory) { undoStack = []; redoStack = []; }
+        };
+
+        function renderKidsColors() {
+            const row = document.getElementById('kidsMainColorsRow');
+            row.innerHTML = KIDS_COLORS.map(c => `
+                <div class="color-dot-kid ${(!isRainbowMode && currentColor === c) ? 'active' : ''}" 
+                     style="background:${c}" 
+                     onclick="pickKidColor('${c}')"></div>
+            `).join('');
+        }
+
+        window.pickKidColor = function(color) {
+            isRainbowMode = false;
+            document.getElementById('rainbowModeToggle').classList.remove('active');
+            currentColor = color;
+            if(activeTool === 'eraser') activeTool = 'pencil';
+            syncToolUI();
+            renderKidsColors();
+        };
+
+        window.toggleRainbowMode = function() {
+            isRainbowMode = !isRainbowMode;
+            const btn = document.getElementById('rainbowModeToggle');
+            if(isRainbowMode) {
+                btn.classList.add('active');
+                if(activeTool === 'eraser') activeTool = 'pencil';
+                syncToolUI();
+            } else {
+                btn.classList.remove('active');
+            }
+            renderKidsColors();
+        };
+
+        function renderVisualStyleGrid() {
+            styleGridSelector.innerHTML = '';
+            ART_STYLES.forEach(style => {
+                const item = document.createElement('div');
+                item.className = `style-grid-item ${selectedStyle === style.id ? 'active' : ''}`;
+                const parts = style.label.split(' ');
+                const emoji = parts.length > 1 ? parts[parts.length - 1] : '🎨';
+                const pureName = style.label.replace(emoji, '').trim();
+
+                item.innerHTML = `
+                    <div class="style-grid-icon">${emoji}</div>
+                    <div class="style-grid-label">${pureName}</div>
+                `;
+                item.onclick = () => { selectedStyle = style.id; renderVisualStyleGrid(); };
+                styleGridSelector.appendChild(item);
+            });
+        }
+
+        function renderGuidedTraceLibrary() {
+            templateLibraryContainer.innerHTML = '';
+            Object.keys(GUIDED_TEMPLATES).forEach(key => {
+                const item = document.createElement('div');
+                item.className = `library-item ${activeTemplate === key ? 'active' : ''}`;
+                item.innerHTML = `${GUIDED_TEMPLATES[key]}<span class="library-item-label">${key.toUpperCase()}</span>`;
+                item.onclick = () => {
+                    activeTemplate = (activeTemplate === key) ? null : key;
+                    canvasGuideOverlay.innerHTML = activeTemplate ? GUIDED_TEMPLATES[key] : '';
+                    engineStatusText.innerText = activeTemplate ? `Tracing template [${key.toUpperCase()}] active!` : "Waiting for strokes...";
+                    renderGuidedTraceLibrary();
+                };
+                templateLibraryContainer.appendChild(item);
+            });
+        }
+
+        window.toggleAccordion = function() {
+            document.getElementById('styleAccordionSection').classList.toggle('open');
+        };
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function startPaint(e) {
+            saveHistory();
+            isDrawing = true;
+            const coords = getCanvasCoords(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+            drawPaint(e);
+        }
+
+        function drawPaint(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const coords = getCanvasCoords(e);
+
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (activeTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1.0)';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                if (isRainbowMode) {
+                    rainbowHue = (rainbowHue + 3) % 360;
+                    ctx.strokeStyle = `hsl(${rainbowHue}, 95%, 55%)`;
+                } else {
+                    ctx.strokeStyle = currentColor;
+                }
+            }
+
+            ctx.globalAlpha = brushOpacity / 100;
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+        }
+
+        function stopPaint() {
+            if (isDrawing) { ctx.closePath(); isDrawing = false; }
+        }
+
+        window.setTool = function(tool) {
+            activeTool = tool;
+            syncToolUI();
+        };
+
+        function syncToolUI() {
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            const target = document.getElementById(`tool-${activeTool}`);
+            if(target) target.classList.add('active');
+        }
+
+        // Fixed Motion Matrix Engine Pipeline Trigger
+        async function processAI(isVideoMode = false) {
+            generateBtn.disabled = true;
+            videoBtn.disabled = true;
+            loadingText.style.display = 'block';
+            resultPanel.style.display = 'none';
+            resultImg.classList.remove('animate-motion-active');
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 512;
+            tempCanvas.height = 512;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.fillStyle = "#FFFFFF";
+            tCtx.fillRect(0, 0, 512, 512);
+            tCtx.drawImage(canvas, 0, 0, 512, 512);
+            
+            const styleObj = ART_STYLES.find(s => s.id === selectedStyle) || ART_STYLES[0];
+            let traceHelper = activeTemplate ? `highly cohesive aligned tracing structure of a clean ${activeTemplate}, ` : '';
+            let promptText = `${traceHelper}${styleObj.prompt}. ${promptInput.value || ''}`;
+
+            const randomSeed = Math.floor(Math.random() * 888888);
+            const fetchUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${randomSeed}&enhance=true`;
+
+            tryFetchImage(fetchUrl, isVideoMode, 1);
+        }
+
+        function tryFetchImage(url, isVideoMode, attempt) {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = url;
+            img.onload = () => {
+                loadingText.style.display = 'none';
+                generateBtn.disabled = false;
+                videoBtn.disabled = false;
+                resultPanel.style.display = 'flex';
+                resultImg.src = url;
+
+                if (isVideoMode) {
+                    // Activate structural pan matrix rendering behavior to render moving layouts correctly
+                    resultImg.classList.add('animate-motion-active');
+                }
+                resultPanel.scrollIntoView({ behavior: 'smooth' });
+            };
+            img.onerror = () => {
+                if (attempt < 4) {
+                    setTimeout(() => tryFetchImage(url, isVideoMode, attempt + 1), 1500);
+                } else {
+                    loadingText.style.display = 'none';
+                    generateBtn.disabled = false;
+                    videoBtn.disabled = false;
+                    alert("Network error. Try again!");
+                }
+            };
+        }
+
+        window.addEventListener('resize', setupCanvasLayout);
+        window.addEventListener('DOMContentLoaded', () => {
+            setupCanvasLayout();
+            renderVisualStyleGrid();
+            renderGuidedTraceLibrary();
+            renderKidsColors();
+
+            brushSizeInput.oninput = (e) => {
+                brushSize = e.target.value;
+                document.getElementById('brushSizeVal').innerText = `${brushSize}px`;
+            };
+            brushOpacityInput.oninput = (e) => {
+                brushOpacity = e.target.value;
+                document.getElementById('brushOpacityVal').innerText = `${brushOpacity}%`;
+            };
+            document.getElementById('compactColorPicker').oninput = (e) => {
+                pickKidColor(e.target.value);
+            };
+
+            generateBtn.onclick = () => processAI(false);
+            videoBtn.onclick = () => processAI(true);
+
+            document.getElementById('downloadBtn').onclick = async () => {
+                const res = await fetch(resultImg.src);
+                const blob = await res.blob();
+                const localUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = localUrl;
+                link.download = `nkarik-art-${Date.now()}.png`;
+                link.click();
+            };
+
+            document.getElementById('newBtn').onclick = () => {
+                resultPanel.style.display = 'none';
+                resultImg.classList.remove('animate-motion-active');
+                clearCanvas();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            canvas.addEventListener('mousedown', startPaint);
+            canvas.addEventListener('mousemove', drawPaint);
+            canvas.addEventListener('mouseup', stopPaint);
+            canvas.addEventListener('mouseout', stopPaint);
+
+            canvas.addEventListener('touchstart', (e) => { startPaint(e); drawPaint(e); });
+            canvas.addEventListener('touchmove', drawPaint);
+            canvas.addEventListener('touchend', stopPaint);
+        });
+
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('themeToggleBtn').innerText = isDark ? "☀️ Light" : "🌙 Mode";
+        };
+    })();
+</script>
+</body>
+</html>

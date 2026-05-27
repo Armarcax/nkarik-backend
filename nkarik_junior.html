@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ - Մեծիկ (5-7)</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+
+        @keyframes rainbowBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes starPop { 0% { transform: scale(0) rotate(0deg); } 50% { transform: scale(1.3) rotate(180deg); } 100% { transform: scale(1) rotate(360deg); } }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(135deg, #6BCB77 0%, #4D96FF 25%, #9B59B6 50%, #FF6B6B 75%, #6BCB77 100%);
+            background-size: 400% 400%;
+            animation: rainbowBg 18s ease infinite;
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 10px; 
+            overflow-y: auto; 
+        }
+
+        .app-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(20px);
+            border-radius: 32px; 
+            padding: 16px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            max-width: 480px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            margin-bottom: 16px; 
+        }
+
+        .header { text-align: center; padding: 8px; }
+        .header h1 { font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #6BCB77, #4D96FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { font-size: 13px; color: #888; font-weight: 600; }
+
+        .lang-tabs {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid #E5E5EA;
+            border-radius: 16px;
+            background: white;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lang-btn.active {
+            background: linear-gradient(135deg, #6BCB77, #4D96FF);
+            color: white;
+            border-color: transparent;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px;
+        }
+        .cat-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 14px;
+            background: #E5E5EA;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .cat-btn.active {
+            background: linear-gradient(135deg, #6BCB77, #4D96FF);
+            color: white;
+        }
+
+        .template-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px;
+            background: #F2F2F7;
+            border-radius: 16px;
+        }
+        .template-item {
+            flex: 0 0 70px;
+            height: 70px;
+            border: 3px solid #E5E5EA;
+            border-radius: 14px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .template-item:active { transform: scale(0.95); }
+        .template-item.active {
+            border-color: #4D96FF;
+            background: #E8F4FF;
+            animation: bounce 0.4s ease;
+        }
+        .template-item svg {
+            width: 60%;
+            height: 60%;
+            stroke: #4D96FF;
+            stroke-width: 3;
+            fill: none;
+        }
+        .template-item span {
+            font-size: 10px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .canvas-area {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .guide-overlay {
+            position: absolute; top: 5%; left: 5%; width: 90%; height: 90%;
+            opacity: 0.25; z-index: 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .guide-overlay svg { width: 100%; height: 100%; stroke: #4D96FF; stroke-width: 4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        .tools-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .tool-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 14px;
+            background: #F2F2F7;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn.active { background: linear-gradient(135deg, #6BCB77, #4D96FF); color: white; }
+
+        .color-palette {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 8px;
+            background: #F2F2F7;
+            border-radius: 16px;
+        }
+        .color-dot {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+        .color-dot.active { transform: scale(1.15); border-color: #333; }
+
+        .action-btns { display: flex; gap: 10px; }
+        .big-btn {
+            flex: 1; padding: 14px; border: none; border-radius: 18px;
+            font-size: 16px; font-weight: 800; cursor: pointer; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .big-btn:active { transform: scale(0.97); }
+        .btn-check { background: linear-gradient(135deg, #6BCB77, #4D96FF); }
+        .btn-clear { background: linear-gradient(135deg, #A0A0A0, #C0C0C0); }
+
+        .score-panel {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            background: linear-gradient(135deg, #FFF9E6, #E6F7FF);
+            border-radius: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        .score-stars { font-size: 40px; margin: 8px 0; }
+        .score-text { font-size: 18px; font-weight: 800; color: #4D96FF; }
+        .score-bar {
+            width: 100%; height: 20px;
+            background: #E5E5EA;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6BCB77, #4D96FF);
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+        .result-img {
+            width: 100%; aspect-ratio: 1;
+            border-radius: 24px; object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header">
+        <h1>🎨 Մեծիկ</h1>
+        <div class="subtitle">Ուրվագծիր և սովորիր! (5-7 տ.)</div>
+    </div>
+
+    <div class="lang-tabs">
+        <button class="lang-btn active" onclick="setLanguage('hy')">🇦🇲 Հայերեն</button>
+        <button class="lang-btn" onclick="setLanguage('en')">🇺🇸 English</button>
+        <button class="lang-btn" onclick="setLanguage('ru')">🇷🇺 Русский</button>
+    </div>
+
+    <div class="category-tabs" id="categoryTabs">
+        <button class="cat-btn active" onclick="setCategory('letters')">🔤 Տառեր</button>
+        <button class="cat-btn" onclick="setCategory('numbers')">🔢 Թվեր</button>
+        <button class="cat-btn" onclick="setCategory('objects')">🧸 Պատկերներ</button>
+    </div>
+
+    <div class="template-scroll" id="templateScroll"></div>
+
+    <div class="canvas-area" id="canvasArea">
+        <div class="guide-overlay" id="guideOverlay"></div>
+        <canvas id="paintCanvas"></canvas>
+    </div>
+
+    <div class="tools-row">
+        <button class="tool-btn active" onclick="setTool('pencil')">✏️ Մատիտ</button>
+        <button class="tool-btn" onclick="setTool('brush')">🖌️ Վրձին</button>
+        <button class="tool-btn" onclick="setTool('eraser')">🧼 Ռետին</button>
+    </div>
+
+    <div class="color-palette" id="colorPalette"></div>
+
+    <div class="action-btns">
+        <button class="big-btn btn-check" onclick="checkAccuracy()">⭐ Ստուգել</button>
+        <button class="big-btn btn-clear" onclick="clearCanvas()">🗑️ Մաքրել</button>
+    </div>
+
+    <div class="score-panel" id="scorePanel">
+        <div class="score-stars" id="scoreStars"></div>
+        <div class="score-text" id="scoreText"></div>
+        <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <img class="result-img" id="resultImg" alt="Result">
+        <button class="big-btn btn-check" onclick="saveArt()">💾 Պահպանել</button>
+    </div>
+</div>
+
+<script>
+// ============================================
+// ՄԵՑԻԿ (5-7) - Ուրվագծում + Ճշգրտություն
+// ============================================
+
+const JUNIOR_DATA = {
+    hy: {
+        letters: [
+            { id:'hy_A',  label:'Ա', path:'M40,80 L40,30 C40,15 60,15 60,30 L60,80 M30,80 L45,80 M55,80 L70,80 M40,55 L60,55' },
+            { id:'hy_B',  label:'Բ', path:'M35,20 L55,20 C65,20 65,40 55,40 C65,40 65,80 55,80 L35,80 Z M35,40 L55,40' },
+            { id:'hy_G',  label:'Գ', path:'M35,80 L35,20 L65,20' },
+            { id:'hy_D',  label:'Դ', path:'M30,20 L70,20 L70,80 L30,80 M30,20 L30,45 L70,45' },
+            { id:'hy_E',  label:'Ե', path:'M65,20 L35,20 L35,80 L65,80 M35,50 L60,50' },
+            { id:'hy_Z',  label:'Զ', path:'M35,20 L65,20 L35,80 L65,80' },
+            { id:'hy_EE', label:'Է', path:'M65,20 L35,20 L35,80 M35,50 L60,50' },
+            { id:'hy_ET', label:'Ը', path:'M35,20 L35,80 M35,20 C55,20 55,50 35,50 C55,50 55,80 35,80' },
+            { id:'hy_TO', label:'Թ', path:'M50,25 C35,25 25,35 25,50 C25,65 35,75 50,75 C65,75 75,65 75,50 C75,35 65,25 50,25 M35,50 L65,50' },
+            { id:'hy_JE', label:'Ժ', path:'M35,20 L65,80 M65,20 L35,80 M50,20 L50,80' },
+            { id:'hy_INI',label:'Ի', path:'M35,20 L35,80 M65,20 L65,80 M35,80 L65,20' },
+            { id:'hy_LYN',label:'Լ', path:'M35,20 L35,80 L65,80' },
+            { id:'hy_XAD',label:'Խ', path:'M35,20 L65,80 M65,20 L35,80' },
+            { id:'hy_CA', label:'Ծ', path:'M35,80 L35,20 C50,20 65,30 65,50 C65,70 50,80 35,80' },
+            { id:'hy_KEN',label:'Կ', path:'M35,20 L35,80 M35,50 L65,20 M35,50 L65,80' },
+            { id:'hy_HO', label:'Հ', path:'M35,20 L35,80 M65,20 L65,80 M35,50 L65,50' },
+            { id:'hy_DZA',label:'Ձ', path:'M35,20 L65,20 L35,50 L65,50 L35,80 L65,80' },
+            { id:'hy_GHAT',label:'Ղ', path:'M65,20 L35,20 L35,80 M35,50 L65,50 L65,80' },
+            { id:'hy_TCHE',label:'Ճ', path:'M35,20 L35,50 L65,50 L65,80' },
+            { id:'hy_MEN',label:'Մ', path:'M35,80 L35,20 L50,50 L65,20 L65,80' },
+            { id:'hy_YI', label:'Յ', path:'M35,20 L35,50 L65,50 M50,50 L50,80' },
+            { id:'hy_NOW',label:'Ն', path:'M35,20 L35,80 L65,20 L65,80' },
+            { id:'hy_SHA',label:'Շ', path:'M35,20 L35,80 L65,80 L65,20 M50,20 L50,80' },
+            { id:'hy_VO', label:'Ո', path:'M35,20 C35,50 65,50 65,20 M50,40 L50,80' },
+            { id:'hy_CHA',label:'Չ', path:'M35,20 L35,50 L65,50 M65,20 L65,80' },
+            { id:'hy_PE', label:'Պ', path:'M35,80 L35,20 L65,20 L65,50 L35,50' },
+            { id:'hy_DJA',label:'Ջ', path:'M35,20 L65,20 M50,20 L50,80 L35,80' },
+            { id:'hy_RA', label:'Ռ', path:'M35,80 L35,20 C55,20 65,30 65,50 C65,70 50,80 65,80' },
+            { id:'hy_SE', label:'Ս', path:'M65,35 C65,20 35,20 35,45 C35,70 65,70 65,75 C65,90 35,90 35,75' },
+            { id:'hy_VEV',label:'Վ', path:'M35,20 L50,80 L65,20' },
+            { id:'hy_TYO',label:'Տ', path:'M35,20 L65,20 M50,20 L50,80' },
+            { id:'hy_RE', label:'Ր', path:'M35,20 L35,80 M35,20 L65,20 L65,50 L35,50' },
+            { id:'hy_TSO',label:'Ց', path:'M35,20 L35,50 L65,20 M35,50 L65,80' },
+            { id:'hy_OW', label:'Ու', path:'M25,20 C25,55 55,55 55,20 M40,45 L40,80 M55,20 L75,80' },
+            { id:'hy_PIWR',label:'Փ', path:'M50,15 L50,85 M30,35 C30,15 70,15 70,35 C70,55 30,55 30,35 Z' },
+            { id:'hy_KE', label:'Ք', path:'M35,20 L65,80 M65,20 L35,80 M35,50 L65,50' },
+            { id:'hy_EV', label:'Եվ', path:'M25,45 C45,15 55,45 25,65 L55,65 M65,35 L45,80 L75,80' },
+            { id:'hy_O',  label:'Օ', path:'M50,25 C35,25 25,35 25,50 C25,65 35,75 50,75 C65,75 75,65 75,50 C75,35 65,25 50,25' },
+            { id:'hy_FE', label:'Ֆ', path:'M50,15 L50,85 M30,35 C30,15 70,15 70,35 C70,55 30,55 30,35 Z M35,60 L65,60' },
+        ],
+        numbers: [
+            { id:'hn0', label:'0', path:'M50,30 C65,30 65,70 50,70 C35,70 35,30 50,30' },
+            { id:'hn1', label:'1', path:'M45,35 L50,25 L50,70' },
+            { id:'hn2', label:'2', path:'M35,35 C35,20 65,20 65,40 C65,55 35,55 35,70 L65,70' },
+            { id:'hn3', label:'3', path:'M30,25 L65,25 L45,50 C55,50 70,58 70,70 C70,82 55,85 40,80' },
+            { id:'hn4', label:'4', path:'M55,15 L30,55 L70,55 M55,15 L55,85' },
+            { id:'hn5', label:'5', path:'M65,20 L35,20 L35,45 C40,40 65,40 65,62 C65,80 45,82 35,75' },
+            { id:'hn6', label:'6', path:'M60,25 C45,25 35,40 35,60 C35,75 45,82 55,82 C65,82 71,72 71,60 C71,48 62,45 52,45' },
+            { id:'hn7', label:'7', path:'M30,22 L70,22 L45,82' },
+            { id:'hn8', label:'8', path:'M50,50 C30,50 30,22 50,22 C70,22 70,50 50,50 Z M50,50 C25,50 25,82 50,82 C75,82 75,50 50,50 Z' },
+            { id:'hn9', label:'9', path:'M48,55 C38,55 29,52 29,40 C29,28 35,18 45,18 C55,18 65,25 65,40 C65,60 55,75 40,82' },
+        ],
+        objects: [
+            { id:'h_apple',  label:'Խնձոր',  path:'M50,25 C40,25 30,30 30,45 C30,65 45,85 50,85 C55,85 70,65 70,45 C70,30 60,25 50,25 Z M50,25 Q55,15 60,10' },
+            { id:'h_fish',   label:'Ձկնիկ',  path:'M15,50 C30,25 70,25 85,50 C70,75 30,75 15,50 Z M85,50 L95,65 L90,50 L95,35 Z' },
+            { id:'h_butterfly', label:'Թիթեռ', path:'M50,25 C35,10 15,25 15,50 C15,75 35,90 50,75 C65,90 85,75 85,50 C85,25 65,10 50,25 M50,25 L50,75' },
+            { id:'h_flower', label:'Ծաղիկ',  path:'M50,25 C55,15 65,15 65,25 C75,25 75,35 65,35 C65,45 55,45 50,35 C45,45 35,45 35,35 C25,35 25,25 35,25 C35,15 45,15 50,25 M50,35 L50,70' },
+            { id:'h_house',  label:'Տուն',   path:'M25,80 L25,50 L50,25 L75,50 L75,80 M25,50 L75,50 M40,80 L40,60 L60,60 L60,80' },
+            { id:'h_tree',   label:'Ծառ',    path:'M50,20 L25,60 L40,60 L40,80 L60,80 L60,60 L75,60 Z' },
+        ]
+    },
+    en: {
+        letters: [
+            { id:'en_A', label:'A', path:'M50,15 L25,80 M50,15 L75,80 M33,60 L67,60' },
+            { id:'en_B', label:'B', path:'M30,15 L30,85 M30,15 L55,15 C68,15 68,48 30,48 M30,48 L60,48 C70,48 70,85 30,85' },
+            { id:'en_C', label:'C', path:'M70,25 C55,10 30,25 30,50 C30,75 55,90 70,75' },
+            { id:'en_D', label:'D', path:'M30,15 L30,85 M30,15 C65,15 75,50 30,85' },
+            { id:'en_E', label:'E', path:'M65,15 L30,15 L30,85 L65,85 M30,50 L55,50' },
+            { id:'en_F', label:'F', path:'M65,15 L30,15 L30,85 M30,50 L55,50' },
+            { id:'en_G', label:'G', path:'M70,25 C55,10 30,25 30,50 C30,75 55,90 70,75 L70,52 L52,52' },
+            { id:'en_H', label:'H', path:'M30,15 L30,85 M70,15 L70,85 M30,50 L70,50' },
+            { id:'en_I', label:'I', path:'M40,15 L60,15 M50,15 L50,85 M40,85 L60,85' },
+            { id:'en_J', label:'J', path:'M60,15 L60,65 C60,80 35,80 35,65' },
+            { id:'en_K', label:'K', path:'M30,15 L30,85 M70,15 L32,50 L70,85' },
+            { id:'en_L', label:'L', path:'M35,15 L35,85 L70,85' },
+            { id:'en_M', label:'M', path:'M25,85 L25,15 L50,50 L75,15 L75,85' },
+            { id:'en_N', label:'N', path:'M30,85 L30,15 L70,85 L70,15' },
+            { id:'en_O', label:'O', path:'M50,20 C70,20 70,80 50,80 C30,80 30,20 50,20' },
+            { id:'en_P', label:'P', path:'M30,15 L30,85 M30,15 L55,15 C68,15 68,48 30,48' },
+            { id:'en_Q', label:'Q', path:'M50,20 C70,20 70,80 50,80 C30,80 30,20 50,20 M62,62 L80,80' },
+            { id:'en_R', label:'R', path:'M30,15 L30,85 M30,15 L55,15 C68,15 68,48 30,48 M32,48 L68,85' },
+            { id:'en_S', label:'S', path:'M65,32 C65,15 35,15 35,35 C35,55 65,50 65,68 C65,85 35,85 35,68' },
+            { id:'en_T', label:'T', path:'M30,15 L70,15 M50,15 L50,85' },
+            { id:'en_U', label:'U', path:'M30,15 L30,60 C30,78 70,78 70,60 L70,15' },
+            { id:'en_V', label:'V', path:'M25,15 L50,85 L75,15' },
+            { id:'en_W', label:'W', path:'M20,15 L35,85 L50,40 L65,85 L80,15' },
+            { id:'en_X', label:'X', path:'M25,15 L75,85 M75,15 L25,85' },
+            { id:'en_Y', label:'Y', path:'M25,15 L50,50 L75,15 M50,50 L50,85' },
+            { id:'en_Z', label:'Z', path:'M25,20 L75,20 L25,80 L75,80' },
+        ],
+        numbers: [
+            { id:'en0', label:'0', path:'M50,30 C65,30 65,70 50,70 C35,70 35,30 50,30' },
+            { id:'en1', label:'1', path:'M35,32 L50,20 L50,80 M35,80 L65,80' },
+            { id:'en2', label:'2', path:'M30,35 C30,20 70,20 70,35 C70,55 30,60 30,80 L70,80' },
+            { id:'en3', label:'3', path:'M30,25 L70,25 L45,50 C55,50 70,58 70,70 C70,82 55,85 40,80' },
+            { id:'en4', label:'4', path:'M55,15 L30,55 L70,55 M55,15 L55,85' },
+            { id:'en5', label:'5', path:'M65,20 L35,20 L35,45 C40,40 65,40 65,62 C65,80 45,82 35,75' },
+            { id:'en6', label:'6', path:'M60,25 C45,25 35,40 35,60 C35,75 45,82 55,82 C65,82 71,72 71,60 C71,48 62,45 52,45' },
+            { id:'en7', label:'7', path:'M30,22 L70,22 L45,82' },
+            { id:'en8', label:'8', path:'M50,50 C30,50 30,22 50,22 C70,22 70,50 50,50 Z M50,50 C25,50 25,82 50,82 C75,82 75,50 50,50 Z' },
+            { id:'en9', label:'9', path:'M48,55 C38,55 29,52 29,40 C29,28 35,18 45,18 C55,18 65,25 65,40 C65,60 55,75 40,82' },
+        ],
+        objects: [
+            { id:'e_apple', label:'Apple', path:'M50,25 C40,25 30,30 30,45 C30,65 45,85 50,85 C55,85 70,65 70,45 C70,30 60,25 50,25 Z M50,25 Q55,15 60,10' },
+            { id:'e_fish', label:'Fish', path:'M15,50 C30,25 70,25 85,50 C70,75 30,75 15,50 Z M85,50 L95,65 L90,50 L95,35 Z' },
+            { id:'e_cat', label:'Cat', path:'M30,80 L30,50 L20,35 L30,45 L40,35 L50,45 L60,35 L70,45 L80,35 L70,50 L70,80 M35,40 A3,3 0 1,0 35,41 M65,40 A3,3 0 1,0 65,41' },
+            { id:'e_dog', label:'Dog', path:'M25,80 L25,50 L20,30 L30,40 L35,30 L50,35 L65,30 L70,40 L80,30 L75,50 L75,80 M30,45 A3,3 0 1,0 30,46 M60,45 A3,3 0 1,0 60,46' },
+            { id:'e_bird', label:'Bird', path:'M20,50 C20,30 40,20 50,30 C60,20 80,30 80,50 C80,60 70,70 50,70 C30,70 20,60 20,50 M80,50 L90,40 L85,50 L90,60' },
+            { id:'e_car', label:'Car', path:'M15,70 L20,55 L35,55 L40,45 L70,45 L75,55 L85,55 L90,70 L85,70 C85,60 75,60 75,70 L35,70 C35,60 25,60 25,70 L15,70' },
+        ]
+    },
+    ru: {
+        letters: [
+            { id:'ru_A', label:'А', path:'M50,15 L25,80 M50,15 L75,80 M33,60 L67,60' },
+            { id:'ru_B', label:'Б', path:'M65,22 L35,22 L35,78 C35,78 65,78 65,60 C65,45 35,45 35,45' },
+            { id:'ru_V', label:'В', path:'M30,15 L30,85 M30,15 L55,15 C65,15 65,48 30,48 M30,48 L60,48 C70,48 70,85 30,85' },
+            { id:'ru_G', label:'Г', path:'M35,85 L35,15 L70,15' },
+            { id:'ru_D', label:'Д', path:'M25,75 L35,75 L35,25 L65,25 L65,75 L75,75 M25,75 L25,85 M75,75 L75,85' },
+            { id:'ru_E', label:'Е', path:'M65,15 L30,15 L30,85 L65,85 M30,50 L55,50' },
+            { id:'ru_YO',label:'Ё', path:'M65,25 L30,25 L30,85 L65,85 M30,55 L55,55 M40,10 A2,2 0 1,0 40,11 M60,10 A2,2 0 1,0 60,11' },
+            { id:'ru_ZH',label:'Ж', path:'M30,15 L70,85 M70,15 L30,85 M50,15 L50,85 M30,50 L70,50' },
+            { id:'ru_Z', label:'З', path:'M35,25 C35,10 65,10 65,35 C65,50 45,50 45,50 C45,50 65,50 65,70 C65,90 35,90 35,75' },
+            { id:'ru_I', label:'И', path:'M30,15 L30,85 M70,15 L70,85 M70,85 L30,15' },
+            { id:'ru_Y', label:'Й', path:'M30,25 L30,85 M70,25 L70,85 M70,85 L30,25 M40,15 Q50,8 60,15' },
+            { id:'ru_K', label:'К', path:'M35,15 L35,85 M35,50 L65,15 M35,50 L65,85' },
+            { id:'ru_L', label:'Л', path:'M30,85 L45,15 L70,15 L70,85' },
+            { id:'ru_M', label:'М', path:'M25,85 L25,15 L50,45 L75,15 L75,85' },
+            { id:'ru_N', label:'Н', path:'M30,15 L30,85 M70,15 L70,85 M30,50 L70,50' },
+            { id:'ru_O', label:'О', path:'M50,20 C70,20 70,80 50,80 C30,80 30,20 50,20' },
+            { id:'ru_P', label:'П', path:'M30,85 L30,15 L70,15 L70,85' },
+            { id:'ru_R', label:'Р', path:'M35,15 L35,85 M35,15 L60,15 C72,15 72,48 35,48' },
+            { id:'ru_S', label:'С', path:'M70,25 C55,10 30,25 30,50 C30,75 55,90 70,75' },
+            { id:'ru_T', label:'Т', path:'M25,15 L75,15 M50,15 L50,85' },
+            { id:'ru_U', label:'У', path:'M25,15 L45,55 L30,85 M45,55 L70,15' },
+            { id:'ru_F', label:'Ф', path:'M50,15 L50,85 M50,50 C25,50 25,25 50,25 C75,25 75,50 50,50 Z M50,50 C25,50 25,75 50,75 C75,75 75,50 50,50 Z' },
+            { id:'ru_X', label:'Х', path:'M25,15 L75,85 M75,15 L25,85' },
+            { id:'ru_TS',label:'Ц', path:'M30,15 L30,75 L65,75 L65,15 M65,75 L65,85 M65,85 L73,85' },
+            { id:'ru_CH',label:'Ч', path:'M30,15 L30,50 L65,50 M65,15 L65,85' },
+            { id:'ru_SH',label:'Ш', path:'M25,15 L25,75 L75,75 L75,15 M42,15 L42,75 M58,15 L58,75' },
+            { id:'ru_SHCH',label:'Щ', path:'M25,15 L25,75 L75,75 L75,15 M42,15 L42,75 M58,15 L58,75 M75,75 L75,85 L82,85' },
+            { id:'ru_HARD',label:'Ъ', path:'M25,20 L45,20 M45,20 L45,80 M45,50 C65,50 65,80 45,80' },
+            { id:'ru_YERY',label:'Ы', path:'M30,15 L30,85 M30,50 C55,50 55,85 30,85 M65,15 L65,85' },
+            { id:'ru_SOFT',label:'Ь', path:'M35,15 L35,85 M35,50 C60,50 60,85 35,85' },
+            { id:'ru_E_REV',label:'Э', path:'M35,25 C55,25 60,35 60,50 C60,65 55,75 35,75 M30,50 L55,50' },
+            { id:'ru_YU',label:'Ю', path:'M30,15 L30,85 M30,50 L50,50 M75,50 C75,25 50,25 50,50 C50,75 75,75 75,50 Z' },
+            { id:'ru_YA',label:'Я', path:'M40,85 L40,15 L60,15 C72,15 72,45 40,45 M40,45 L65,85' },
+        ],
+        numbers: [
+            { id:'rn0', label:'0', path:'M50,30 C65,30 65,70 50,70 C35,70 35,30 50,30' },
+            { id:'rn1', label:'1', path:'M45,35 L50,25 L50,70' },
+            { id:'rn2', label:'2', path:'M35,35 C35,20 65,20 65,40 C65,55 35,55 35,70 L65,70' },
+            { id:'rn3', label:'3', path:'M30,25 L65,25 L45,50 C55,50 70,58 70,70 C70,82 55,85 40,80' },
+            { id:'rn4', label:'4', path:'M55,15 L30,55 L70,55 M55,15 L55,85' },
+            { id:'rn5', label:'5', path:'M65,20 L35,20 L35,45 C40,40 65,40 65,62 C65,80 45,82 35,75' },
+            { id:'rn6', label:'6', path:'M60,25 C45,25 35,40 35,60 C35,75 45,82 55,82 C65,82 71,72 71,60 C71,48 62,45 52,45' },
+            { id:'rn7', label:'7', path:'M30,22 L70,22 L45,82' },
+            { id:'rn8', label:'8', path:'M50,50 C30,50 30,22 50,22 C70,22 70,50 50,50 Z M50,50 C25,50 25,82 50,82 C75,82 75,50 50,50 Z' },
+            { id:'rn9', label:'9', path:'M48,55 C38,55 29,52 29,40 C29,28 35,18 45,18 C55,18 65,25 65,40 C65,60 55,75 40,82' },
+        ],
+        objects: [
+            { id:'r_apple', label:'Яблоко', path:'M50,25 C40,25 30,30 30,45 C30,65 45,85 50,85 C55,85 70,65 70,45 C70,30 60,25 50,25 Z M50,25 Q55,15 60,10' },
+            { id:'r_fish', label:'Рыбка', path:'M15,50 C30,25 70,25 85,50 C70,75 30,75 15,50 Z M85,50 L95,65 L90,50 L95,35 Z' },
+            { id:'r_cat', label:'Кошка', path:'M30,80 L30,50 L20,35 L30,45 L40,35 L50,45 L60,35 L70,45 L80,35 L70,50 L70,80 M35,40 A3,3 0 1,0 35,41 M65,40 A3,3 0 1,0 65,41' },
+            { id:'r_dog', label:'Собака', path:'M25,80 L25,50 L20,30 L30,40 L35,30 L50,35 L65,30 L70,40 L80,30 L75,50 L75,80 M30,45 A3,3 0 1,0 30,46 M60,45 A3,3 0 1,0 60,46' },
+            { id:'r_sun', label:'Солнце', path:'M50,35 C60,35 65,40 65,50 C65,60 60,65 50,65 C40,65 35,60 35,50 C35,40 40,35 50,35 M50,20 L50,10 M50,80 L50,90 M20,50 L10,50 M80,50 L90,50 M28,28 L20,20 M72,72 L80,80 M28,72 L20,80 M72,28 L80,20' },
+            { id:'r_ball', label:'Мяч', path:'M50,20 C70,20 80,35 80,50 C80,65 70,80 50,80 C30,80 20,65 20,50 C20,35 30,20 50,20 M20,50 C35,55 65,55 80,50 M50,20 C45,35 45,65 50,80' },
+        ]
+    }
+};
+
+const JUNIOR_COLORS = [
+    '#FF3B30', '#FF9500', '#FFCC00', '#34C759', 
+    '#007AFF', '#5856D6', '#FF2D55', '#AF52DE',
+    '#00C7BE', '#FF6B6B', '#4D96FF', '#6BCB77'
+];
+
+let currentLang = 'hy';
+let currentCategory = 'letters';
+let currentTemplate = null;
+let currentTool = 'pencil';
+let currentColor = '#4D96FF';
+let isDrawing = false;
+let userStrokes = [];
+
+const canvas = document.getElementById('paintCanvas');
+const ctx = canvas.getContext('2d');
+const guideOverlay = document.getElementById('guideOverlay');
+
+function setupCanvas() {
+    const rect = document.getElementById('canvasArea').getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+}
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTemplates();
+}
+
+function setCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTemplates();
+}
+
+function renderTemplates() {
+    const scroll = document.getElementById('templateScroll');
+    scroll.innerHTML = '';
+
+    const items = JUNIOR_DATA[currentLang][currentCategory];
+    items.forEach(tmpl => {
+        const item = document.createElement('div');
+        item.className = 'template-item';
+        item.innerHTML = `
+            <svg viewBox="0 0 100 100"><path d="${tmpl.path}" /></svg>
+            <span>${tmpl.label}</span>
+        `;
+        item.onclick = () => selectTemplate(tmpl, item);
+        scroll.appendChild(item);
+    });
+}
+
+function selectTemplate(tmpl, element) {
+    currentTemplate = tmpl;
+    userStrokes = [];
+    document.querySelectorAll('.template-item').forEach(i => i.classList.remove('active'));
+    element.classList.add('active');
+
+    guideOverlay.innerHTML = `<svg viewBox="0 0 100 100"><path d="${tmpl.path}" /></svg>`;
+    clearCanvas();
+    document.getElementById('scorePanel').style.display = 'none';
+}
+
+function renderColors() {
+    const palette = document.getElementById('colorPalette');
+    palette.innerHTML = '';
+
+    JUNIOR_COLORS.forEach((color, i) => {
+        const dot = document.createElement('div');
+        dot.className = `color-dot ${i === 4 ? 'active' : ''}`;
+        dot.style.backgroundColor = color;
+        dot.onclick = () => {
+            currentColor = color;
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+        };
+        palette.appendChild(dot);
+    });
+}
+
+function setTool(tool) {
+    currentTool = tool;
+    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+}
+
+function startDraw(e) {
+    isDrawing = true;
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    userStrokes.push([pos]);
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    const pos = getPos(e);
+
+    if (currentTool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = 20;
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = currentTool === 'brush' ? 12 : 6;
+    }
+
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+
+    if (userStrokes.length > 0) {
+        userStrokes[userStrokes.length - 1].push(pos);
+    }
+}
+
+function stopDraw() {
+    isDrawing = false;
+    ctx.beginPath();
+    ctx.globalCompositeOperation = 'source-over';
+}
+
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    userStrokes = [];
+    document.getElementById('scorePanel').style.display = 'none';
+    document.getElementById('resultPanel').style.display = 'none';
+}
+
+// Simple accuracy check based on pixel coverage
+function checkAccuracy() {
+    if (!currentTemplate || userStrokes.length === 0) {
+        alert('Նախ նկարիր ուրվագիծը!');
+        return;
+    }
+
+    // Create a canvas with the guide path
+    const guideCanvas = document.createElement('canvas');
+    guideCanvas.width = canvas.width;
+    guideCanvas.height = canvas.height;
+    const gctx = guideCanvas.getContext('2d');
+
+    gctx.strokeStyle = 'white';
+    gctx.lineWidth = 15;
+    gctx.lineCap = 'round';
+    gctx.lineJoin = 'round';
+
+    const path = new Path2D(currentTemplate.path);
+    gctx.save();
+    gctx.translate(canvas.width/2, canvas.height/2);
+    gctx.scale(canvas.width/100 * 0.9, canvas.height/100 * 0.9);
+    gctx.translate(-50, -50);
+    gctx.stroke(path);
+    gctx.restore();
+
+    // Get pixel data
+    const guideData = gctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const userData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    let guidePixels = 0;
+    let coveredPixels = 0;
+
+    for (let i = 3; i < guideData.length; i += 4) {
+        if (guideData[i] > 0) {
+            guidePixels++;
+            if (userData[i] > 0) {
+                coveredPixels++;
+            }
+        }
+    }
+
+    const accuracy = guidePixels > 0 ? Math.round((coveredPixels / guidePixels) * 100) : 0;
+    showScore(accuracy);
+}
+
+function showScore(accuracy) {
+    const panel = document.getElementById('scorePanel');
+    const stars = document.getElementById('scoreStars');
+    const text = document.getElementById('scoreText');
+    const fill = document.getElementById('scoreFill');
+
+    panel.style.display = 'block';
+
+    // Stars
+    let starCount = accuracy > 80 ? 3 : accuracy > 50 ? 2 : 1;
+    stars.innerText = '⭐'.repeat(starCount);
+
+    // Text
+    const messages = {
+        hy: { high: 'Գերազանց! 🎉', mid: 'Լավ է! 👍', low: 'Փորձիր կրկին! 💪' },
+        en: { high: 'Excellent! 🎉', mid: 'Good job! 👍', low: 'Try again! 💪' },
+        ru: { high: 'Отлично! 🎉', mid: 'Хорошо! 👍', low: 'Попробуй еще! 💪' }
+    };
+
+    let level = accuracy > 80 ? 'high' : accuracy > 50 ? 'mid' : 'low';
+    text.innerText = `${messages[currentLang][level]} — ${accuracy}%`;
+
+    // Bar
+    fill.style.width = accuracy + '%';
+
+    // Generate colored result
+    generateResult(accuracy);
+}
+
+function generateResult(accuracy) {
+    const resultCanvas = document.createElement('canvas');
+    resultCanvas.width = 512;
+    resultCanvas.height = 512;
+    const rctx = resultCanvas.getContext('2d');
+
+    // Background based on accuracy
+    const grad = rctx.createLinearGradient(0, 0, 512, 512);
+    if (accuracy > 80) {
+        grad.addColorStop(0, '#E8F5E9');
+        grad.addColorStop(1, '#C8E6C9');
+    } else if (accuracy > 50) {
+        grad.addColorStop(0, '#FFF8E1');
+        grad.addColorStop(1, '#FFECB3');
+    } else {
+        grad.addColorStop(0, '#FFEBEE');
+        grad.addColorStop(1, '#FFCDD2');
+    }
+    rctx.fillStyle = grad;
+    rctx.fillRect(0, 0, 512, 512);
+
+    // Draw the shape with user's color
+    rctx.strokeStyle = currentColor;
+    rctx.fillStyle = currentColor + '40';
+    rctx.lineWidth = 8;
+
+    const path = new Path2D(currentTemplate.path);
+    rctx.save();
+    rctx.translate(256, 256);
+    rctx.scale(3.5, 3.5);
+    rctx.translate(-50, -50);
+    rctx.fill(path);
+    rctx.stroke(path);
+    rctx.restore();
+
+    // Add sparkles for high accuracy
+    if (accuracy > 80) {
+        for (let i = 0; i < 30; i++) {
+            rctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 70%)`;
+            rctx.beginPath();
+            rctx.arc(Math.random() * 512, Math.random() * 512, Math.random() * 6 + 2, 0, Math.PI * 2);
+            rctx.fill();
+        }
+    }
+
+    document.getElementById('resultImg').src = resultCanvas.toDataURL('image/png');
+    document.getElementById('resultPanel').style.display = 'flex';
+}
+
+function saveArt() {
+    const link = document.createElement('a');
+    link.download = `nkarik-junior-${Date.now()}.png`;
+    link.href = document.getElementById('resultImg').src;
+    link.click();
+}
+
+// Events
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDraw);
+canvas.addEventListener('mouseout', stopDraw);
+
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+canvas.addEventListener('touchend', stopDraw);
+
+window.addEventListener('resize', setupCanvas);
+
+// Init
+setTimeout(() => {
+    setupCanvas();
+    renderTemplates();
+    renderColors();
+}, 100);
+</script>
+</body>
+</html>
