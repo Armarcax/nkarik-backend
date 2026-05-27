@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Նկարիկ Մեծիկ (5-7)</title>
+    <link rel="stylesheet" href="shared/styles.css">
+    <style>
+        .canvas-wrapper {
+            background: white;
+            border-radius: 24px;
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 15px 0;
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            touch-action: none;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+        }
+        #guideCanvas {
+            pointer-events: none;
+            opacity: 0.25;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .btn {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        .btn.active {
+            background: var(--arm-blue);
+            color: white;
+        }
+        .templates {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            width: 100%;
+            padding: 5px 0;
+        }
+        .template-card {
+            min-width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .template-card svg {
+            width: 40px;
+            height: 40px;
+        }
+        .label { font-size: 0.7rem; color: #666; }
+
+        .score-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .stars { font-size: 4rem; margin: 20px 0; }
+        .result-canvas {
+            width: 256px;
+            height: 256px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+
+    <div class="container">
+        <div class="toolbar" id="langs">
+            <button class="btn active" onclick="setLanguage('hy', this)">🇦🇲 Հայերեն</button>
+            <button class="btn" onclick="setLanguage('en', this)">🇺🇸 English</button>
+            <button class="btn" onclick="setLanguage('ru', this)">🇷🇺 Русский</button>
+        </div>
+
+        <div class="toolbar" id="cats">
+            <button class="btn active" onclick="setCategory('hy_letters', this)" id="btn_hy">Տառեր</button>
+            <button class="btn" onclick="setCategory('numbers', this)" id="btn_num">Թվեր</button>
+            <button class="btn" onclick="setCategory('objects', this)" id="btn_obj">Պատկերներ</button>
+        </div>
+
+        <div class="templates" id="templateList"></div>
+
+        <div class="canvas-wrapper">
+            <canvas id="userCanvas"></canvas>
+            <canvas id="guideCanvas"></canvas>
+        </div>
+
+        <div class="toolbar">
+            <div id="palette" style="display: flex; gap: 5px;"></div>
+            <button class="btn" onclick="clearCanvas()">🗑️</button>
+            <button class="btn" style="background: var(--arm-orange); color: white; font-weight: bold;" onclick="checkMyDrawing()" id="btn_check">ՍՏՈՒԳԵԼ</button>
+        </div>
+    </div>
+
+    <div class="score-overlay" id="scoreOverlay">
+        <h2 id="scoreTitle">Գերազանց!</h2>
+        <div class="stars" id="starDisplay">⭐⭐⭐</div>
+        <canvas class="result-canvas" id="resultCanvas" width="512" height="512"></canvas>
+        <div class="toolbar">
+            <button class="btn" onclick="closeOverlay()">Նորից</button>
+            <button class="btn" onclick="saveResult()">Պահպանել</button>
+        </div>
+    </div>
+
+    <script src="shared/templates.js"></script>
+    <script>
+        const uCanvas = document.getElementById('userCanvas');
+        const gCanvas = document.getElementById('guideCanvas');
+        const uCtx = uCanvas.getContext('2d', {willReadFrequently:true});
+        const gCtx = gCanvas.getContext('2d');
+
+        let currentLanguage = 'hy';
+        let currentCategory = 'hy_letters';
+        let currentTemplate = null;
+        let currentColor = '#007AFF';
+        let isDrawing = false;
+
+        const UI = {
+            hy: { check: 'ՍՏՈՒԳԵԼ', letters: 'Տառեր', numbers: 'Թվեր', objects: 'Պատկերներ', bravo: 'Գերազանց!', good: 'Լավ է', try: 'Էլի փորձիր' },
+            en: { check: 'CHECK', letters: 'Letters', numbers: 'Numbers', objects: 'Objects', bravo: 'Excellent!', good: 'Good job', try: 'Try again' },
+            ru: { check: 'ПРОВЕРИТЬ', letters: 'Буквы', numbers: 'Цифры', objects: 'Предметы', bravo: 'Отлично!', good: 'Хорошо', try: 'Попробуй еще' }
+        };
+
+        function setupCanvases() {
+            const rect = uCanvas.parentElement.getBoundingClientRect();
+            const size = rect.width - 20;
+            uCanvas.width = gCanvas.width = size;
+            uCanvas.height = gCanvas.height = size;
+
+            uCtx.lineCap = 'round';
+            uCtx.lineJoin = 'round';
+            uCtx.lineWidth = 15;
+            uCtx.strokeStyle = currentColor;
+
+            renderGuide();
+        }
+
+        function setLanguage(lang, el) {
+            currentLanguage = lang;
+            document.querySelectorAll('#langs .btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update labels
+            document.getElementById('btn_hy').innerText = UI[lang].letters;
+            document.getElementById('btn_num').innerText = UI[lang].numbers;
+            document.getElementById('btn_obj').innerText = UI[lang].objects;
+            document.getElementById('btn_check').innerText = UI[lang].check;
+
+            if (lang === 'hy') currentCategory = 'hy_letters';
+            else if (lang === 'en') currentCategory = 'en_letters';
+            else if (lang === 'ru') currentCategory = 'ru_letters';
+
+            // Update cat active state
+            document.querySelectorAll('#cats .btn').forEach(b => b.classList.remove('active'));
+            if (currentCategory.includes('letters')) document.getElementById('btn_hy').classList.add('active');
+
+            renderTemplates();
+        }
+
+        function setCategory(cat, el) {
+            currentCategory = cat;
+            document.querySelectorAll('#cats .btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderTemplates();
+        }
+
+        function renderTemplates() {
+            const list = document.getElementById('templateList');
+            list.innerHTML = '';
+            const filtered = GUIDED_TEMPLATES.filter(t => t.cat === currentCategory);
+
+            filtered.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'template-card';
+                card.innerHTML = `${t.svg}<div class="label">${t.label[currentLanguage]}</div>`;
+                card.onclick = () => {
+                    currentTemplate = t;
+                    renderGuide();
+                    clearCanvas();
+                };
+                list.appendChild(card);
+            });
+
+            if (!currentTemplate && filtered.length > 0) {
+                currentTemplate = filtered[0];
+                renderGuide();
+            }
+        }
+
+        function renderGuide() {
+            gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+            if (!currentTemplate) return;
+
+            const p = new Path2D(currentTemplate.path);
+            gCtx.save();
+            const margin = gCanvas.width * 0.05;
+            const scale = gCanvas.width * 0.9 / 100;
+            gCtx.translate(margin, margin);
+            gCtx.scale(scale, scale);
+            gCtx.strokeStyle = '#007AFF';
+            gCtx.lineWidth = 1;
+            gCtx.stroke(p);
+            gCtx.restore();
+        }
+
+        function clearCanvas() {
+            uCtx.clearRect(0, 0, uCanvas.width, uCanvas.height);
+        }
+
+        function getPos(e) {
+            const rect = uCanvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - rect.left, y: cy - rect.top };
+        }
+
+        uCanvas.onmousedown = uCanvas.ontouchstart = (e) => {
+            if (e.type === 'touchstart') e.preventDefault();
+            isDrawing = true;
+            const pos = getPos(e);
+            uCtx.beginPath();
+            uCtx.moveTo(pos.x, pos.y);
+        };
+        window.onmousemove = window.ontouchmove = (e) => {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            uCtx.lineTo(pos.x, pos.y);
+            uCtx.stroke();
+        };
+        window.onmouseup = window.ontouchend = () => { isDrawing = false; };
+
+        function checkAccuracy() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = uCanvas.width;
+            tempCanvas.height = uCanvas.height;
+            const tCtx = tempCanvas.getContext('2d');
+
+            const margin = uCanvas.width * 0.05;
+            const scale = uCanvas.width * 0.9 / 100;
+            tCtx.translate(margin, margin);
+            tCtx.scale(scale, scale);
+
+            const p = new Path2D(currentTemplate.path);
+            tCtx.strokeStyle = '#000';
+            tCtx.lineWidth = 15 / scale;
+            tCtx.lineCap = 'round';
+            tCtx.stroke(p);
+
+            const guideData = tCtx.getImageData(0, 0, uCanvas.width, uCanvas.height).data;
+            const userData = uCtx.getImageData(0, 0, uCanvas.width, uCanvas.height).data;
+
+            let guidePixels = 0, covered = 0;
+            for (let i = 3; i < guideData.length; i += 4) {
+                if (guideData[i] > 10) {
+                    guidePixels++;
+                    if (userData[i] > 10) covered++;
+                }
+            }
+            return guidePixels > 0 ? (covered / guidePixels) * 100 : 0;
+        }
+
+        function checkMyDrawing() {
+            const score = checkAccuracy();
+            const starDisplay = document.getElementById('starDisplay');
+            const title = document.getElementById('scoreTitle');
+
+            if (score >= 80) {
+                starDisplay.innerText = '⭐⭐⭐';
+                title.innerText = UI[currentLanguage].bravo;
+            } else if (score >= 50) {
+                starDisplay.innerText = '⭐⭐';
+                title.innerText = UI[currentLanguage].good;
+            } else {
+                starDisplay.innerText = '⭐';
+                title.innerText = UI[currentLanguage].try;
+            }
+
+            renderResult(score);
+            document.getElementById('scoreOverlay').style.display = 'flex';
+        }
+
+        function renderResult(score) {
+            const rc = document.getElementById('resultCanvas');
+            const rctx = rc.getContext('2d');
+
+            let bg = '#E8F5E9';
+            if (score < 50) bg = '#FFEBEE';
+            else if (score < 80) bg = '#FFFDE7';
+
+            rctx.fillStyle = bg;
+            rctx.fillRect(0, 0, 512, 512);
+
+            const p = new Path2D(currentTemplate.path);
+            rctx.save();
+            rctx.translate(51, 51);
+            rctx.scale(4.1, 4.1);
+
+            rctx.strokeStyle = currentColor;
+            rctx.lineWidth = 5;
+
+            const isClosed = currentTemplate.path.toUpperCase().includes(' Z') || currentTemplate.path.toUpperCase().endsWith('Z');
+            if (isClosed) {
+                rctx.fillStyle = currentColor + '44';
+                rctx.fill(p);
+            }
+            rctx.stroke(p);
+
+            if (score >= 80) {
+                for(let i=0; i<20; i++) {
+                    rctx.fillStyle = '#FFD700';
+                    rctx.beginPath();
+                    rctx.arc(Math.random()*100, Math.random()*100, 1, 0, Math.PI*2);
+                    rctx.fill();
+                }
+            }
+            rctx.restore();
+        }
+
+        function closeOverlay() { document.getElementById('scoreOverlay').style.display = 'none'; }
+
+        function saveResult() {
+            const rc = document.getElementById('resultCanvas');
+            const link = document.createElement('a');
+            link.download = 'nkarik-junior.png';
+            link.href = rc.toDataURL('image/png');
+            link.click();
+        }
+
+        window.onresize = () => {
+            const data = uCtx.getImageData(0, 0, uCanvas.width, uCanvas.height);
+            setupCanvases();
+            uCtx.putImageData(data, 0, 0);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            requestAnimationFrame(() => {
+                setupCanvases();
+                const pal = document.getElementById('palette');
+                ['#FF3B30', '#34C759', '#007AFF', '#FFCC00', '#000000'].forEach(c => {
+                    const d = document.createElement('div');
+                    d.style.width = '40px'; d.style.height = '40px'; d.style.borderRadius = '50%'; d.style.background = c; d.style.cursor = 'pointer';
+                    d.onclick = () => { currentColor = c; uCtx.strokeStyle = c; };
+                    pal.appendChild(d);
+                });
+                renderTemplates();
+            });
+        });
+    </script>
+</body>
+</html>

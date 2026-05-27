@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nkarik PRO (18+)</title>
+    <link rel="stylesheet" href="shared/styles.css">
+    <style>
+        .pro-layout { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+        .canvas-container { background: white; border-radius: 20px; aspect-ratio: 1; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; position: relative; }
+        canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+
+        .controls-panel { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .control-group { margin-bottom: 15px; }
+        .control-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; font-size: 0.8rem; }
+
+        input[type="range"] { width: 100%; }
+        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
+
+        .toggle-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 0.8rem; }
+        .toggle-btn.active { background: var(--arm-blue); color: white; border-color: var(--arm-blue); }
+
+        .style-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 15px; }
+        .style-item { background: white; border-radius: 8px; padding: 8px 2px; text-align: center; cursor: pointer; font-size: 0.6rem; border: 2px solid transparent; }
+        .style-item.active { border-color: var(--arm-orange); background: #f0f7ff; }
+
+        .action-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+        .btn-main { padding: 15px; border-radius: 30px; border: none; background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; font-weight: bold; cursor: pointer; }
+        .btn-sec { padding: 15px; border-radius: 30px; border: 1px solid #1a1a2e; background: white; cursor: pointer; }
+
+        .result-view { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; items-center; justify-center; z-index: 4000; padding: 20px; }
+        .res-img { max-width: 100%; max-height: 70vh; border-radius: 15px; margin-bottom: 20px; }
+        .loader { color: white; margin-bottom: 20px; text-align: center; }
+
+        .tool-bar { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+        .tool-icon { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ddd; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .tool-icon.active { background: var(--arm-orange); color: white; }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 15px;">🎓 Nkarik PRO</h1>
+
+        <div class="pro-layout">
+            <div class="tool-bar">
+                <div class="tool-icon active" onclick="setTool('brush', this)">🖌️</div>
+                <div class="tool-icon" onclick="setTool('pencil', this)">✏️</div>
+                <div class="tool-icon" onclick="setTool('marker', this)">🖍️</div>
+                <div class="tool-icon" onclick="setTool('eraser', this)">🧽</div>
+                <div class="tool-icon" onclick="clearCanvas()">🗑️</div>
+            </div>
+
+            <div class="canvas-container" id="cBox">
+                <canvas id="proCanvas"></canvas>
+            </div>
+
+            <div class="controls-panel">
+                <input type="text" id="promptIn" placeholder="Describe your masterpiece...">
+
+                <div class="style-grid" id="proStyles"></div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>Resolution</span><span id="resVal">512</span></div>
+                    <input type="range" id="resSlider" min="256" max="1024" step="256" value="512">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>CFG Scale (Guidance)</span><span id="cfgVal">7.5</span></div>
+                    <input type="range" id="cfgSlider" min="1" max="20" step="0.5" value="7.5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label"><span>Seed (0 = Random)</span></div>
+                    <input type="text" id="seedIn" value="0">
+                </div>
+
+                <div class="toggle-group">
+                    <button class="toggle-btn" id="detailTog" onclick="this.classList.toggle('active')">High Detail</button>
+                    <button class="toggle-btn" id="darkTog" onclick="this.classList.toggle('active')">Dark Mode</button>
+                </div>
+
+                <div class="action-btns">
+                    <button class="btn-main" onclick="generatePro()">GENERATE ART</button>
+                    <button class="btn-sec" onclick="generateVariation()">VARIATION</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-view" id="resView">
+        <div class="loader" id="proLoader">🔮 Weaving pixels...</div>
+        <img id="proResImg" class="res-img">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-sec" style="flex:1" onclick="document.getElementById('resView').style.display='none'">Back</button>
+            <button class="btn-main" style="flex:1" id="proDown">Download</button>
+        </div>
+    </div>
+
+    <script src="shared/templates.js"></script>
+    <script>
+        const canvas = document.getElementById('proCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastPrompt = "";
+        let currentStyle = 'realistic';
+        let tool = 'brush';
+
+        function init() {
+            const size = document.getElementById('cBox').clientWidth;
+            canvas.width = canvas.height = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            setTool('brush', document.querySelector('.tool-icon.active'));
+            renderStyles();
+        }
+
+        function setTool(t, el) {
+            tool = t;
+            document.querySelectorAll('.tool-icon').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+
+            ctx.globalCompositeOperation = (t === 'eraser') ? 'destination-out' : 'source-over';
+            if (t === 'brush') { ctx.lineWidth = 10; ctx.globalAlpha = 1; }
+            else if (t === 'pencil') { ctx.lineWidth = 3; ctx.globalAlpha = 1; }
+            else if (t === 'marker') { ctx.lineWidth = 15; ctx.globalAlpha = 0.4; }
+            else if (t === 'eraser') { ctx.lineWidth = 20; ctx.globalAlpha = 1; }
+        }
+
+        function renderStyles() {
+            const grid = document.getElementById('proStyles');
+            ART_STYLES.slice(0, 18).forEach(s => {
+                const item = document.createElement('div');
+                item.className = `style-item ${s.id === currentStyle ? 'active' : ''}`;
+                item.innerHTML = `<div>${s.label.split(' ')[1]}</div><div>${s.label.split(' ')[0]}</div>`;
+                item.onclick = () => {
+                    currentStyle = s.id;
+                    document.querySelectorAll('.style-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - rect.left, y: cy - rect.top };
+        }
+
+        canvas.onmousedown = canvas.ontouchstart = (e) => {
+            if(e.type==='touchstart') e.preventDefault();
+            isDrawing = true;
+            const p = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+        };
+        window.onmousemove = window.ontouchmove = (e) => {
+            if (!isDrawing) return;
+            const p = getPos(e);
+            ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+        };
+        window.onmouseup = window.ontouchend = () => isDrawing = false;
+
+        async function generatePro() {
+            const userText = document.getElementById('promptIn').value.trim();
+            if (!userText) { alert('Please enter a prompt!'); return; }
+
+            const style = ART_STYLES.find(s => s.id === currentStyle);
+            const detailOn = document.getElementById('detailTog').classList.contains('active');
+            const darkOn = document.getElementById('darkTog').classList.contains('active');
+            const cfg = document.getElementById('cfgSlider').value;
+            const res = document.getElementById('resSlider').value;
+            let seed = parseInt(document.getElementById('seedIn').value);
+            if (seed === 0) seed = Math.floor(Math.random() * 9999999);
+
+            let prompt = `${userText}, ${style.prompt}`;
+            if (detailOn) prompt += ', highly detailed, intricate, masterpiece, best quality';
+            if (darkOn)   prompt += ', dark dramatic lighting, moody atmosphere';
+            prompt += `, guidance:${cfg}`;
+
+            lastPrompt = prompt;
+
+            document.getElementById('resView').style.display = 'flex';
+            document.getElementById('proLoader').style.display = 'block';
+            document.getElementById('proResImg').src = '';
+
+            try {
+                const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=${res}&height=${res}&seed=${seed}&nofeed=true&nologo=true`;
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const imgUrl = URL.createObjectURL(blob);
+
+                document.getElementById('proResImg').src = imgUrl;
+                document.getElementById('proLoader').style.display = 'none';
+                document.getElementById('proDown').onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = imgUrl;
+                    a.download = `nkarik_pro_${seed}.png`;
+                    a.click();
+                };
+            } catch (e) {
+                alert('Generation failed. Please try again.');
+                document.getElementById('resView').style.display = 'none';
+            }
+        }
+
+        function generateVariation() {
+            if (!lastPrompt) { alert('Generate a first image before requesting variation!'); return; }
+            document.getElementById('seedIn').value = 0;
+            generatePro();
+        }
+
+        document.getElementById('resSlider').oninput = (e) => document.getElementById('resVal').innerText = e.target.value;
+        document.getElementById('cfgSlider').oninput = (e) => document.getElementById('cfgVal').innerText = e.target.value;
+
+        window.onresize = () => {
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            init();
+            ctx.putImageData(data, 0, 0);
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

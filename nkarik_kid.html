@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Նկարիկ Փոքրիկ (1-4)</title>
+    <link rel="stylesheet" href="shared/styles.css">
+    <style>
+        .canvas-container {
+            background: white;
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            touch-action: none;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .color-dot {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .category-btn {
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: none;
+            background: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .category-btn.active {
+            background: var(--arm-blue);
+            color: white;
+        }
+        .magic-btn {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 40px;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            margin-top: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .templates {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            width: 100%;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        .template-item {
+            min-width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            padding: 5px;
+        }
+        .template-item svg {
+            width: 100%;
+            height: 100%;
+            stroke: #ddd;
+            fill: none;
+            stroke-width: 2;
+        }
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .bravo-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-weight: bold;
+            color: var(--arm-red);
+            text-shadow: 0 0 20px white;
+            z-index: 1001;
+            display: none;
+            animation: bounce 0.5s infinite alternate;
+        }
+        @keyframes bounce { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.2); } }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f00;
+            top: -20px;
+            opacity: 0;
+            animation: fall 3s linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 10px;">🧸 ՓՈՔՐԻԿ</h1>
+
+        <div class="toolbar" id="categories">
+            <button class="category-btn active" onclick="setCategory('shapes', this)">Ձևեր</button>
+            <button class="category-btn" onclick="setCategory('numbers', this)">Թվեր</button>
+            <button class="category-btn" onclick="setCategory('letters', this)">Տառեր</button>
+        </div>
+
+        <div class="templates" id="templateList"></div>
+
+        <div class="canvas-container" id="canvasWrapper">
+            <canvas id="mainCanvas"></canvas>
+        </div>
+
+        <div class="toolbar" id="colors"></div>
+
+        <div style="text-align: center;">
+            <button class="magic-btn" onclick="applyMagic()">ՄԱԳԻԱ՛ ✨</button>
+            <div style="margin-top: 15px;">
+                <button class="category-btn" onclick="clearCanvas()">🗑️</button>
+                <button class="category-btn" onclick="saveImage()">💾</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confetti-container"></div>
+    <div class="bravo-text" id="bravoText">ԲՐԱՎՈ՛</div>
+
+    <script src="shared/templates.js"></script>
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentPath = null;
+        let isDrawing = false;
+        let currentColor = '#FF3B30';
+
+        const COLORS = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#FF2D55', '#AF52DE', '#1D1D1F', '#8E8E93', '#FFFFFF', '#000000'];
+
+        function setupCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = currentColor;
+        }
+
+        function renderColors() {
+            const container = document.getElementById('colors');
+            container.innerHTML = '';
+            COLORS.forEach(c => {
+                const dot = document.createElement('div');
+                dot.className = 'color-dot';
+                dot.style.backgroundColor = c;
+                dot.onclick = () => {
+                    currentColor = c;
+                    ctx.strokeStyle = c;
+                };
+                container.appendChild(dot);
+            });
+        }
+
+        function setCategory(cat, el) {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderTemplates(cat);
+        }
+
+        function renderTemplates(cat) {
+            const list = document.getElementById('templateList');
+            list.innerHTML = '';
+
+            let filtered = [];
+            if (cat === 'shapes') {
+                filtered = GUIDED_TEMPLATES.filter(t => t.cat === 'objects' && ['apple', 'fish', 'butterfly', 'flower', 'star', 'heart'].includes(t.id));
+            } else if (cat === 'numbers') {
+                filtered = GUIDED_TEMPLATES.filter(t => t.cat === 'numbers' && parseInt(t.id.split('_')[1]) <= 5);
+            } else if (cat === 'letters') {
+                filtered = GUIDED_TEMPLATES.filter(t => t.cat === 'hy_letters' && ['hy_A', 'hy_B', 'hy_G', 'hy_D', 'hy_E', 'hy_Z'].includes(t.id));
+            }
+
+            filtered.forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'template-item';
+                item.innerHTML = t.svg;
+                item.onclick = () => {
+                    currentPath = t.path;
+                    drawTemplate(t.path);
+                };
+                list.appendChild(item);
+            });
+        }
+
+        function drawTemplate(pathStr) {
+            clearCanvas();
+            const p = new Path2D(pathStr);
+            ctx.save();
+            const margin = canvas.width / (window.devicePixelRatio || 1) * 0.1;
+            const size = canvas.width / (window.devicePixelRatio || 1) * 0.8;
+            const scale = size / 100;
+            ctx.translate(margin, margin);
+            ctx.scale(scale, scale);
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 2;
+            ctx.stroke(p);
+            ctx.restore();
+            ctx.lineWidth = 15; // Reset for drawing
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getMousePos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function applyMagic() {
+            if (!currentPath) return;
+
+            const p = new Path2D(currentPath);
+            const margin = canvas.width / (window.devicePixelRatio || 1) * 0.1;
+            const size = canvas.width / (window.devicePixelRatio || 1) * 0.8;
+            const scale = size / 100;
+
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, "red");
+            grad.addColorStop(0.2, "orange");
+            grad.addColorStop(0.4, "yellow");
+            grad.addColorStop(0.6, "green");
+            grad.addColorStop(0.8, "blue");
+            grad.addColorStop(1, "violet");
+
+            ctx.save();
+            ctx.translate(margin, margin);
+            ctx.scale(scale, scale);
+            ctx.fillStyle = grad;
+
+            const isClosed = currentPath.toUpperCase().includes(' Z') || currentPath.toUpperCase().endsWith('Z');
+            if (isClosed) {
+                ctx.fill(p);
+            } else {
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 10 / scale;
+                ctx.stroke(p);
+            }
+            ctx.restore();
+
+            showCelebration();
+        }
+
+        function showCelebration() {
+            const bravo = document.getElementById('bravoText');
+            bravo.style.display = 'block';
+
+            const container = document.getElementById('confetti-container');
+            for(let i=0; i<50; i++) {
+                const p = document.createElement('div');
+                p.className = 'confetti-piece';
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                p.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(p);
+            }
+
+            setTimeout(() => {
+                bravo.style.display = 'none';
+                container.innerHTML = '';
+            }, 4000);
+        }
+
+        function saveImage() {
+            const composite = document.createElement('canvas');
+            composite.width = canvas.width;
+            composite.height = canvas.height;
+            const cctx = composite.getContext('2d');
+            cctx.fillStyle = '#FFFFFF';
+            cctx.fillRect(0, 0, composite.width, composite.height);
+            cctx.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = 'nkarik-kid.png';
+            link.href = composite.toDataURL('image/png');
+            link.click();
+        }
+
+        window.addEventListener('resize', () => {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            setupCanvas();
+            ctx.putImageData(imgData, 0, 0);
+        });
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            requestAnimationFrame(() => {
+                setupCanvas();
+                renderColors();
+                renderTemplates('shapes');
+            });
+        });
+    </script>
+</body>
+</html>
