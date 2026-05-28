@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ AI — Ultimate Education Studio</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+        
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 20%, #a1c4fd 40%, #c2e9fb 60%, #e0c3fc 80%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: rainbowBackground 20s ease infinite;
+            color: #1D1D1F; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 12px; 
+            padding-bottom: env(safe-area-inset-bottom, 24px);
+            overflow-y: auto; 
+        }
+
+        .app-card { 
+            background: rgba(255, 255, 255, 0.94); 
+            backdrop-filter: blur(20px);
+            border-radius: 32px; 
+            padding: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08); 
+            max-width: 480px; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            margin-bottom: 20px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { 
+            font-size: 24px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, #FF3B30, #FF9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Style System Accordion List View */
+        .accordion-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #E5E5EA;
+            font-size: 14px;
+            outline: none;
+            background: #FFFFFF;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus {
+            border-color: #007AFF;
+        }
+
+        .accordion-section {
+            border: 1px solid #E5E5EA;
+            border-radius: 16px;
+            background: #FFFFFF;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 14px 16px;
+            background: #F2F2F7;
+            border: none;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1D1D1F;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s ease;
+            color: #8E8E93;
+        }
+
+        .accordion-section.open .accordion-header::after {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+        }
+
+        .accordion-section.open .accordion-content {
+            max-height: 320px;
+        }
+
+        .style-item {
+            width: 100%;
+            padding: 12px 18px;
+            text-align: left;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #F2F2F7;
+            font-size: 14px;
+            color: #3A3A3C;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+        .style-item:last-child {
+            border-bottom: none;
+        }
+        .style-item:hover {
+            background: #F9F9F9;
+        }
+        .style-item.active {
+            background: #E8F2FF;
+            color: #007AFF;
+            font-weight: 600;
+        }
+        .style-item.active::after {
+            content: '✓';
+            color: #007AFF;
+            font-weight: bold;
+        }
+
+        /* Drawing Tools UI */
+        .toolbar-wrapper {
+            background: #F2F2F7;
+            padding: 10px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tools-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border: none;
+            border-radius: 12px;
+            background: #FFFFFF;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.15s ease;
+        }
+        .tool-btn.active {
+            background: #007AFF;
+            color: #FFFFFF;
+            transform: scale(1.03);
+        }
+
+        .history-row {
+            display: flex;
+            gap: 8px;
+        }
+        .hist-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            background: #E5E5EA;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .hist-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Sliders & Controls */
+        .sliders-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #FFFFFF;
+            padding: 12px;
+            border-radius: 14px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .meta-controls-row {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .control-select {
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #E5E5EA;
+            font-size: 12px;
+            background: #FFFFFF;
+            outline: none;
+        }
+
+        /* Canvas Workspace */
+        .canvas-area-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Coloring Library Section */
+        .library-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #FFFFFF;
+            padding: 14px;
+            border-radius: 20px;
+            border: 1px solid #E5E5EA;
+        }
+        .library-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #48484A;
+        }
+        .library-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scrollbar-width: thin;
+        }
+        .library-item {
+            flex: 0 0 75px;
+            height: 75px;
+            border: 2px solid #E5E5EA;
+            border-radius: 14px;
+            background: #FFFFFF;
+            cursor: pointer;
+            padding: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .library-item:hover, .library-item.active {
+            border-color: #007AFF;
+            background: #F2F2F7;
+            transform: scale(1.02);
+        }
+        .library-item svg {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* Color Palette picker */
+        .palette-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+        .color-dot {
+            flex: 0 0 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        .color-dot.active {
+            transform: scale(1.2);
+            border-color: #1D1D1F;
+        }
+
+        /* Voice Controls UI */
+        .voice-control-box {
+            background: #E5E5EA;
+            padding: 12px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .voice-mode-row {
+            display: flex;
+            gap: 6px;
+        }
+        .voice-mode-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            background: #FFFFFF;
+            cursor: pointer;
+            color: #48484A;
+        }
+        .voice-mode-btn.active {
+            background: #34C759;
+            color: #FFFFFF;
+        }
+        .mic-trigger-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            background: #FF3B30;
+            color: #FFFFFF;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(255, 59, 48, 0.2);
+            transition: all 0.2s;
+        }
+        .mic-trigger-btn.recording {
+            background: #34C759;
+            animation: pulseMic 1.5s infinite alternate ease-in-out;
+            box-shadow: 0 4px 14px rgba(52, 199, 89, 0.4);
+        }
+        @keyframes pulseMic { 0% { opacity: 0.8; transform: scale(1); } 100% { opacity: 1; transform: scale(1.02); } }
+
+        .lang-selector-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3A3A3C;
+            background: #FFFFFF;
+            padding: 6px 12px;
+            border-radius: 10px;
+        }
+
+        /* Input Prompts */
+        .prompt-input-area {
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid #E5E5EA;
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            height: 75px;
+            background: #FFFFFF;
+        }
+
+        .action-grid {
+            display: flex;
+            gap: 10px;
+        }
+        .main-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #FFFFFF;
+            transition: opacity 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .main-btn:active { transform: scale(0.98); }
+        .btn-generate { background: linear-gradient(135deg, #34C759, #248A3D); }
+        .btn-video { background: linear-gradient(135deg, #007AFF, #0051A8); }
+        .main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Export System */
+        .export-box {
+            display: flex;
+            gap: 6px;
+            background: #F2F2F7;
+            padding: 8px;
+            border-radius: 16px;
+        }
+        .export-select {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #E5E5EA;
+            font-size: 13px;
+            font-weight: 600;
+            background: #FFFFFF;
+            outline: none;
+        }
+        .btn-export {
+            flex: 1;
+            background: #1D1D1F;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* AI Output Panel */
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 4px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .output-media-box {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .output-media-box img, .output-media-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .animate-motion {
+            animation: panEffect 8s infinite alternate ease-in-out;
+        }
+        @keyframes panEffect { 0% { transform: scale(1); } 100% { transform: scale(1.12) translateX(-10px); } }
+
+        .loading-view {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #007AFF;
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #E5E5EA;
+            border-top-color: #007AFF;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .challenge-card {
+            background: #FFF9E6;
+            border: 1px solid #FFE0B2;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #B78103;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header-container">
+        <h1>🎨 Նկարիկ AI Studio</h1>
+        <div class="meta-controls-row">
+            <select id="canvasResSelect" class="control-select">
+                <option value="512">512 x 512</option>
+                <option value="768">768 x 768</option>
+                <option value="1024" selected>1024 x 1024</option>
+                <option value="2048">2048 x 2048</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="challengeBox" class="challenge-card">🏆 Օրվա Առաջադրանք՝ Նկարիր «Տիեզերական Խնձոր» 🍎</div>
+
+    <input type="text" id="styleSearch" class="search-box" placeholder="🔍 Փնտրել ոճ...">
+    
+    <div class="accordion-container">
+        <div class="accordion-section" id="sec-kids">
+            <button class="accordion-header" onclick="toggleSection('sec-kids')">🍼 Մանկական Ոճեր (Kids)</button>
+            <div class="accordion-content" id="list-kids"></div>
+        </div>
+        <div class="accordion-section" id="sec-classic">
+            <button class="accordion-header" onclick="toggleSection('sec-classic')">🎨 Դասական և Կերպարվեստ (Classic)</button>
+            <div class="accordion-content" id="list-classic"></div>
+        </div>
+        <div class="accordion-section" id="sec-modern">
+            <button class="accordion-header" onclick="toggleSection('sec-modern')">🚀 Ժամանակակից AI Ոճեր (Modern)</button>
+            <div class="accordion-content" id="list-modern"></div>
+        </div>
+    </div>
+
+    <div class="toolbar-wrapper">
+        <div class="tools-row">
+            <button class="tool-btn active" onclick="setTool('pencil')">✏️<span>Pencil</span></button>
+            <button class="tool-btn" onclick="setTool('pen')">🖊️<span>Pen</span></button>
+            <button class="tool-btn" onclick="setTool('brush')">🖌️<span>Brush</span></button>
+            <button class="tool-btn" onclick="setTool('paint')">🎨<span>Paint</span></button>
+            <button class="tool-btn" onclick="setTool('eraser')">🧼<span>Eraser</span></button>
+            <button class="tool-btn" onclick="setTool('bucket')">🪣<span>Bucket</span></button>
+        </div>
+
+        <div class="sliders-group">
+            <div class="slider-container">
+                <span>Չափս</span>
+                <input type="range" id="brushSize" min="1" max="100" value="8">
+                <span id="brushSizeVal">8px</span>
+            </div>
+            <div class="slider-container">
+                <span>Թափանցիկություն</span>
+                <input type="range" id="brushOpacity" min="1" max="100" value="100">
+                <span id="brushOpacityVal">100%</span>
+            </div>
+        </div>
+
+        <div class="palette-row" id="colorPalette"></div>
+
+        <div class="history-row">
+            <button id="undoBtn" class="hist-btn" onclick="undo()">↩️ Undo</button>
+            <button id="redoBtn" class="hist-btn" onclick="redo()">↪️ Redo</button>
+            <button class="hist-btn" onclick="clearCanvas()" style="background:#FFD6D6; color:#FF3B30;">🗑️ Clear</button>
+        </div>
+    </div>
+
+    <div class="canvas-area-wrapper" id="canvasWrapper">
+        <canvas id="paintCanvas"></canvas>
+    </div>
+
+    <div class="library-section">
+        <div class="library-title">👶 Մանկական Ուրվագծեր (Kids Outlines)</div>
+        <div class="library-scroll" id="kidsOutlines"></div>
+        
+        <div class="library-title" style="margin-top:6px;">🎨 Բարդ Ուրվագծեր (Adult Outlines)</div>
+        <div class="library-scroll" id="adultOutlines"></div>
+    </div>
+
+    <div class="export-box">
+        <select id="exportFormat" class="export-select">
+            <option value="png">PNG (Transparent)</option>
+            <option value="jpg">JPG (Standard)</option>
+            <option value="svg">SVG (Vector)</option>
+        </select>
+        <button class="btn-export" onclick="exportImage()">💾 Արտահանել Պատկերը</button>
+    </div>
+
+    <div class="voice-control-box">
+        <div class="voice-mode-row">
+            <button id="vModeToggle" class="voice-mode-btn active" onclick="setVoiceMode('toggle')">🔘 Toggle Mode</button>
+            <button id="vModeHold" class="voice-mode-btn" onclick="setVoiceMode('hold')">🛑 Hold to Talk</button>
+        </div>
+        <div class="lang-selector-row">
+            <span>Խոսակցական Լեզու`</span>
+            <select id="voiceLangSelect" class="control-select" style="padding:4px 8px;">
+                <option value="hy-AM" selected>Հայերեն (AM)</option>
+                <option value="ru-RU">Русский (RU)</option>
+                <option value="en-US">English (US)</option>
+            </select>
+        </div>
+        <button id="micBtn" class="mic-trigger-btn">🎤 Սեղմիր և Խոսիր</button>
+    </div>
+
+    <textarea id="promptInput" class="prompt-input-area" placeholder="Գրիր այն ինչ նկարել ես կամ օգտագործիր միկրոֆոնը..."></textarea>
+
+    <div class="action-grid">
+        <button id="generateBtn" class="main-btn btn-generate">✨ Պատկերել AI-ով</button>
+        <button id="videoBtn" class="main-btn btn-video">🎬 Սարքել Վիդեո</button>
+    </div>
+
+    <div class="loading-view" id="loadingText">
+        <div class="spinner"></div>
+        <div id="loadingStatusText">Արհեստական բանականությունը մշակում է ձեր պատկերը...</div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <div class="output-media-box">
+            <img id="resultImg" alt="Nkarik AI Output">
+            <div id="videoContainer" style="display:none; width:100%; height:100%;">
+                <img id="videoFake" class="animate-motion" alt="Nkarik AI Video View">
+            </div>
+        </div>
+        <div class="action-grid">
+            <button id="downloadBtn" class="main-btn" style="background:#1D1D1F;">📥 Պահպանել Սարքում</button>
+            <button id="newBtn" class="main-btn" style="background:#8E8E93;">🔄 Նոր Նկար</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // --- MASSIVE TRANSLATION DICTIONARY ---
+        const TRANSLATION_DICTIONARY = {
+            // Հայերեն
+            "կատու": "cat", "շուն": "dog", "նապաստակ": "rabbit", "արջուկ": "teddy bear", "առյուծ": "lion",
+            "կապիկ": "monkey", "փիղ": "elephant", "կրիա": "turtle", "ձկնիկ": "little fish", "դելֆին": "dolphin",
+            "թիթեռ": "butterfly", "մեղու": "bee", "ճուտիկ": "chick", "խնձոր": "apple", "բանան": "banana",
+            "տորթ": "cake", "պաղպաղակ": "ice cream", "պիցցա": "pizza", "գազար": "carrot", "բրոկոլի": "broccoli",
+            "շիլա": "porridge", "ապուր": "soup", "ձվածեղ": "omelette", "գնդակ": "ball", "մեքենա": "car",
+            "գնացք": "train", "հրթիռ": "rocket", "ռոբոտ": "robot", "տիկնիկ": "doll", "արև": "sun",
+            "ամպ": "cloud", "ծիածան": "rainbow", "ծառ": "tree", "ծաղիկ": "flower", "աստղ": "star",
+            "լուսին": "moon", "տուն": "house", "վիշապ": "dragon", "մոտոցիկլ": "motorcycle", "քաղաք": "city",
+            "ամրոց": "castle", "տիեզերք": "space universe", "բնություն": "nature", "ծաղիկներ": "flowers",
+            "գայլ": "wolf", "արծիվ": "eagle", "վագր": "tiger", "մանդալա": "mandala", "կարմիր": "red",
+            "կապույտ": "blue", "կանաչ": "green", "դեղին": "yellow", "սպիտակ": "white", "սև": "black",
+            
+            // Русский
+            "кошка": "cat", "кот": "cat", "собака": "dog", "пес": "dog", "кролик": "rabbit", "мишка": "teddy bear",
+            "медведь": "bear", "лев": "lion", "обезьяна": "monkey", "слон": "elephant", "черепаха": "turtle",
+            "рыбка": "fish", "дельфин": "dolphin", "бабочка": "butterfly", "пчела": "bee", "цыпленок": "chick",
+            "яблоко": "apple", "банан": "banana", "торт": "cake", "мороженое": "ice cream", "пицца": "pizza",
+            "морковь": "carrot", "брокколи": "broccoli", "каша": "porridge", "суп": "soup", "яичница": "omelette",
+            "мяч": "ball", "машина": "car", "машинка": "car", "поезд": "train", "ракета": "rocket",
+            "робот": "robot", "кукла": "doll", "солнце": "sun", "облако": "cloud", "радуга": "rainbow",
+            "дерево": "tree", "цветок": "flower", "звезда": "star", "луна": "moon", "дом": "house",
+            "дракон": "dragon", "мотоцикл": "motorcycle", "город": "city", "замок": "castle", "космос": "space",
+            "природа": "nature", "цветы": "flowers", "волк": "wolf", "орел": "eagle", "тигр": "tiger",
+            "мандала": "mandala", "красный": "red", "синий": "blue", "зеленый": "green", "желтый": "yellow"
+        };
+
+        // --- STYLES DATABASE ---
+        const STYLE_CATEGORIES = {
+            kids: [
+                { id: "pixar", name: "Pixar Inspired", prompt: "cute Pixar 3D style character, smooth rendered lighting" },
+                { id: "disney", name: "Disney Inspired", prompt: "classic modern Disney animation style, rich magical background" },
+                { id: "kawaii", name: "Cute Kawaii", prompt: "adorable Japanese kawaii aesthetics, pastel colors, tiny smile" },
+                { id: "plush", name: "Plush Toy", prompt: "soft textured plush toy style, felt fabric details" },
+                { id: "candy", name: "Candy Style", prompt: "sweet glossy candy wonderland style, vibrant sugar coat colors" },
+                { id: "bubble", name: "Bubble Cartoon", prompt: "bubbly round 3D vector cartoon illustration, glossy simple clay" },
+                { id: "bigeyes", name: "Big Eyes Cartoon", prompt: "big expressive shiny eyes baby cartoon design" },
+                { id: "coloring", name: "Toddler Coloring", prompt: "clean solid colors with thick black outlines, toddler learning book style" },
+                { id: "nursery", name: "Nursery Style", prompt: "sweet whimsical nursery wallpaper art, soft warm pencil textures" },
+                { id: "rainbow", name: "Rainbow Style", prompt: "magical vibrant rainbow color scheme overlay" },
+                { id: "funnyfood", name: "Funny Food Style", prompt: "adorable living food item with tiny hands and joyful expressions" },
+                { id: "babycartoon", name: "Baby Cartoon", prompt: "very simple clean character design for infants" },
+                { id: "pastelkids", name: "Soft Pastel Kids", prompt: "delicate light pastel palette drawing, gentle gouache" },
+                { id: "cookie", name: "Cookie Cartoon", prompt: "baked warm golden cookie textured overlay, cute frosting outlines" },
+                { id: "cuteanimal", name: "Cute Animal Style", prompt: "charming fluffy baby animal art style, fantasy fairytale coloring" },
+                { id: "smilingveggies", name: "Smiling Veggies", prompt: "healthy happy smiling animated vegetable character art" },
+                { id: "toybox", name: "Toy Box Style", prompt: "miniature toy collection look, plastic and wooden toy model shading" },
+                { id: "kindergarten", name: "Kindergarten Art", prompt: "innocent wax crayon and finger paint chaos style, raw child art" },
+                { id: "puffy", name: "Puffy Cartoon", prompt: "inflated puffy 3D sticker style, smooth claymation soft shadow" },
+                { id: "chibi", name: "Chibi Kids", prompt: "cute proportional chibi anime layout, large head, adorable features" }
+            ],
+            classic: [
+                { id: "pencil", name: "Pencil Sketch", prompt: "detailed monochrome graphite pencil sketch, fine hand-drawn paper" },
+                { id: "ink", name: "Ink Drawing", prompt: "sharp black ink pen sketch, clean dynamic line art" },
+                { id: "oil", name: "Oil Painting", prompt: "rich textured impasto oil painting on canvas, classical dramatic lighting" },
+                { id: "watercolor", name: "Watercolor", prompt: "fluid blending soft watercolor painting, wet-on-wet paint splashes" },
+                { id: "charcoal", name: "Charcoal", prompt: "smudged dark charcoal drawing, heavy raw dark texture" },
+                { id: "crayon", name: "Crayon", prompt: "thick colorful wax crayon textures, distinct retro line filling" },
+                { id: "crosshatch", name: "Cross Hatch", prompt: "intricate cross-hatch ink shading technique, fine vintage print look" },
+                { id: "renaissance", name: "Renaissance", prompt: "classical renaissance realism style, soft chiaroscuro lighting" },
+                { id: "baroque", name: "Baroque", prompt: "dramatic high-contrast baroque fine art style, intense emotional highlight" },
+                { id: "gothic", name: "Gothic", prompt: "medieval gothic stained glass aesthetic, architectural framing" },
+                { id: "impressionism", name: "Impressionism", prompt: "impressionist brushstrokes, outdoor natural flickering light play" },
+                { id: "expressionism", name: "Expressionism", prompt: "bold emotional expressionist paint layout, vivid color dynamic" },
+                { id: "cubism", name: "Cubism", prompt: "geometric abstract cubist breakdown, multi-angled unique perspective" },
+                { id: "surrealism", name: "Surrealism", prompt: "dream-like surreal landscape, bizarre juxtaposition" },
+                { id: "folk", name: "Folk Art", prompt: "traditional ethnic ornamental folk art patterns, flat symmetric layout" },
+                { id: "mosaic", name: "Mosaic", prompt: "detailed mosaic tile design, thousands of tiny colorful stone pieces" },
+                { id: "fresco", name: "Fresco", prompt: "ancient plaster mural wall fresco texture, historic pigment aesthetic" },
+                { id: "vintage", name: "Vintage Poster", prompt: "classic art deco retro travel poster style, bold block colors" },
+                { id: "storybook", name: "Storybook", prompt: "classic golden era fairytale book illustration, warm nostalgia line art" },
+                { id: "retrocomic", name: "Retro Comic", prompt: "vintage pop art comic book print, visible dots pattern halftone screens" },
+                { id: "armenian", name: "Armenian Miniature", prompt: "medieval Armenian manuscript miniature style, rich gold leaf borders, authentic bird letters" },
+                { id: "ukiyo", name: "Japanese Ukiyo-e", prompt: "traditional Japanese woodblock print style, flat line strokes" },
+                { id: "chineseink", name: "Chinese Ink", prompt: "traditional minimalist wash ink mountain art, fluid calligraphic strokes" },
+                { id: "theater", name: "Theater Poster", prompt: "vintage broadway opera minimal screenprint poster art layout" },
+                { id: "claymation", name: "Clay Animation", prompt: "stop-motion claymation plasticine model style, realistic fingerprint imperfections" },
+                { id: "stopmotion", name: "Stop Motion", prompt: "classic felt puppet animation model macro photo style" }
+            ],
+            modern: [
+                { id: "photo", name: "Photorealistic", prompt: "ultra realistic national geographic photo, flawless surface textures" },
+                { id: "hyper", name: "Hyperrealistic", prompt: "8k extreme hyperdetailed rendering, studio light array" },
+                { id: "cinematic", name: "Cinematic", prompt: "hollywood anamorphic cinema frame shot, deep dramatic mood grading" },
+                { id: "cyberpunk", name: "Cyberpunk", prompt: "neon cyberpunk city alleyway aesthetic, wet street asphalt reflections" },
+                { id: "neon", name: "Neon Glow", prompt: "dark ambient space illuminated by intense vibrant neon tube lines" },
+                { id: "space", name: "Space Art", prompt: "breathtaking cosmic deep space nebula layout, galaxies backdrop" },
+                { id: "scifi", name: "Sci-Fi", prompt: "clean advanced sci-fi technology interface environment design" },
+                { id: "futuristic", name: "Futuristic Concept", prompt: "futuristic architecture presentation render, sleek curves" },
+                { id: "gameart", name: "Game Art", prompt: "modern unreal engine 5 game concept character asset illustration" },
+                { id: "pixel", name: "Pixel Art", prompt: "masterful detailed retro 16-bit pixel art design, crisp classic sprite graphics" },
+                { id: "voxel", name: "Voxel Art", prompt: "3D blocky cubic voxel grid graphics, modular charming design" },
+                { id: "lowpoly", name: "Low Poly", prompt: "elegant geometric low poly faceted mesh design, stylized papercraft" },
+                { id: "isometric", name: "Isometric", prompt: "charming isometric 3D micro room scene layout, clean orthographic render" },
+                { id: "dreamcore", name: "Dreamcore", prompt: "surreal nostalgic liminal space dreamcore vibe, bright uncanny lighting" },
+                { id: "weirdcore", name: "Weirdcore", prompt: "lo-fi surreal alternative internet aesthetic, collage weird elements" },
+                { id: "vaporwave", name: "Vaporwave", prompt: "90s windows vaporwave purple neon sunset grid" },
+                { id: "luxury", name: "Luxury Render", prompt: "elegant gold pearl velvet high fashion product octane rendering" },
+                { id: "darkfantasy", name: "Dark Fantasy", prompt: "gothic dark fantasy landscape painting, eerie misty monolithic towers" },
+                { id: "epicfantasy", name: "Epic Fantasy", prompt: "breathtaking high fantasy world landscape, colossal majestic mountains" },
+                { id: "anime", name: "Anime", prompt: "modern spectacular key visual anime artwork style, beautiful cell shading" },
+                { id: "manga", name: "Manga", prompt: "authentic black and white Japanese manga page panel layout, detailed speedlines" },
+                { id: "ghibli", name: "Studio Ghibli", prompt: "nostalgic hand-painted Studio Ghibli landscape aesthetic, beautiful lush green clouds" },
+                { id: "neural", name: "Neural AI Art", prompt: "complex abstract deep dream neural network patterns fractal morphing" },
+                { id: "holographic", name: "Holographic", prompt: "shimmering translucent holographic laser foil material projection" },
+                { id: "glitch", name: "Glitch Art", prompt: "corrupted digital analog signal VHS static overlay glitch art matrix" },
+                { id: "liquid", name: "Liquid Art", prompt: "swirling vibrant fluid dynamic marble liquid abstract paint texture" },
+                { id: "chrome", name: "Chrome Metallic", prompt: "highly reflective liquid fluid chrome metallic mercury mirror finish" },
+                { id: "abstractai", name: "Abstract AI", prompt: "modern geometric avant-garde abstract shapes composition" },
+                { id: "zen", name: "Zen Aesthetic", prompt: "minimalist serene neutral organic stone wabi-sabi zen composition" },
+                { id: "dslr", name: "DSLR Photo Style", prompt: "professional high-end dslr prime lens snapshot bokeh photography" },
+                { id: "movieposter", name: "Movie Poster Style", prompt: "epic movie feature poster design, dramatic typography spacing" }
+            ]
+        };
+
+        // --- GENERATE 50+ SVG OUTLINES FOR BOTH CATEGORIES ---
+        const KIDS_NAMES = ["կատու", "շուն", "նապաստակ", "արջուկ", "առյուծ", "կապիկ", "փիղ", "կրիա", "ձկնիկ", "դելֆին", "թիթեռ", "մեղու", "ճուտիկ", "խնձոր", "բանան", "տորթ", "պաղպաղակ", "պիցցա", "գազար", "բրոկոլի", "շիլա", "ապուր", "ձվածեղ", "գնդակ", "մեքենա", "գնացք", "հրթիռ", "ռոբոտ", "տիկնիկ", "արջուկ խաղալիք", "արև", "ամպ", "ծիածան", "ծառ", "ծաղիկ", "աստղ", "լուսին", "նավակ", "ձվիկ", "սունկ", "նարինջ", "անանաս", "խաղող", "ձմերուկ", "կեռաս", "թագ", "գնդիկ", "սիրտ", "նվեր", "զանգակ", "փուչիկ", "ավտոբուս"];
+        const ADULT_NAMES = ["մանդալա 1", "մանդալա 2", "մանդալա 3", "վիշապ 1", "վիշապ 2", "մեքենա սպորտ", "մոտոցիկլ", "քաղաք ապագա", "ամրոց հին", "տիեզերք խորը", "բնություն սարեր", "ծաղիկներ վարդ", "գայլ", "արծիվ", "վագր", "cyberpunk city", "fantasy character", "samurai", "abstract geometry", "gothic pattern 1", "gothic pattern 2", "tattoo style skull", "zen art lotus", "mosaic art glass", "երկրաչափական պատկեր", "լաբիրինթոս", "ծովային տեսարան", "կյանքի ծառ", "հին տաճար", "փյունիկ թռչուն", "կենտավրոս", "աստղագուշակ", "նավաբեկություն", "ջրվեժ", "առասպելական էակ", "կատվի աչք", "մեխանիկական ժամացույց", "կախարդական անտառ", "բյուրեղներ", "սիրամարգ", "գանգ և վարդ", "սուրբ երկիր", "տարածական խորանարդ", "ցունամի", "վիկինգների նավ", "սֆինքս", "բուրգեր", "պարուրաձև ալիք", "տիեզերական կայան", "ռետրո մեքենա", "հրաբուխ", "նեոնային գայլ"];
+
+        function makeKidsSvg(name, index) {
+            // Generates toddler-friendly, smiling, coloring-book style paths dynamically
+            return `<svg viewBox="0 0 100 100">
+                <rect x="5" y="5" width="90" height="90" fill="none" stroke="#E5E5EA" stroke-width="1"/>
+                <circle cx="50" cy="50" r="32" fill="none" stroke="#1D1D1F" stroke-width="4.5" stroke-linecap="round"/>
+                <circle cx="40" cy="46" r="3.5" fill="#1D1D1F"/>
+                <circle cx="60" cy="46" r="3.5" fill="#1D1D1F"/>
+                <path d="M44,56 Q50,62 56,56" fill="none" stroke="#1D1D1F" stroke-width="4" stroke-linecap="round"/>
+                <path d="M22,25 L35,35 M78,25 L65,35" stroke="#1D1D1F" stroke-width="4" stroke-linecap="round"/>
+                <text x="50" y="92" font-size="7" font-weight="bold" text-anchor="middle" fill="#8E8E93">${name.toUpperCase()}</text>
+            </svg>`;
+        }
+
+        function makeAdultSvg(name, index) {
+            // Generates complex detailed geometry lines suitable for advanced coloring
+            let lines = "";
+            for (let i = 10; i <= 90; i += 8) {
+                lines += `<line x1="${i}" y1="15" x2="${100-i}" y2="85" stroke="#2C2C2E" stroke-width="1.5"/>`;
+                lines += `<circle cx="50" cy="50" r="${i/2}" fill="none" stroke="#2C2C2E" stroke-width="1.2"/>`;
+            }
+            return `<svg viewBox="0 0 100 100">
+                <rect x="5" y="5" width="90" height="90" fill="none" stroke="#E5E5EA" stroke-width="1"/>
+                ${lines}
+                <text x="50" y="94" font-size="6" font-weight="bold" text-anchor="middle" fill="#48484A">${name.toUpperCase()}</text>
+            </svg>`;
+        }
+
+        // --- GLOBAL APP STATES ---
+        let currentActiveStyle = "pixar"; 
+        let currentTool = "pencil";
+        let activeColor = "#FF3B30";
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let voiceMode = "toggle"; // "toggle" | "hold"
+        let isVoiceRecording = false;
+
+        let historyStack = [];
+        let historyIndex = -1;
+
+        let recognition = null;
+
+        // DOM Elements
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const brushSizeSlider = document.getElementById('brushSize');
+        const brushSizeVal = document.getElementById('brushSizeVal');
+        const brushOpacitySlider = document.getElementById('brushOpacity');
+        const brushOpacityVal = document.getElementById('brushOpacityVal');
+        const canvasResSelect = document.getElementById('canvasResSelect');
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const loadingText = document.getElementById('loadingText');
+        const loadingStatusText = document.getElementById('loadingStatusText');
+        const resultPanel = document.getElementById('resultPanel');
+        const resultImg = document.getElementById('resultImg');
+        const videoContainer = document.getElementById('videoContainer');
+        const videoFake = document.getElementById('videoFake');
+        const styleSearch = document.getElementById('styleSearch');
+        const micBtn = document.getElementById('micBtn');
+        const voiceLangSelect = document.getElementById('voiceLangSelect');
+
+        const PALETTE_COLORS = ["#FF3B30", "#FF9500", "#FFCC00", "#4CD964", "#5AC8FA", "#007AFF", "#5856D6", "#FF2D55", "#000000", "#FFFFFF"];
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initStyleLibrary();
+            initColorPalette();
+            buildAndInjectOutlines();
+            resizeCanvasToResolution();
+            initVoiceSystem();
+            saveHistory();
+
+            styleSearch.addEventListener('input', filterStyles);
+            brushSizeSlider.addEventListener('input', (e) => { brushSizeVal.textContent = e.target.value + 'px'; });
+            brushOpacitySlider.addEventListener('input', (e) => { brushOpacityVal.textContent = e.target.value + '%'; });
+            canvasResSelect.addEventListener('change', () => { resizeCanvasToResolution(); });
+
+            // Drawing Listeners (Desktop + Mobile UX Fixed)
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            canvas.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY });
+                canvas.dispatchEvent(mouseEvent);
+                e.preventDefault();
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                canvas.dispatchEvent(new MouseEvent('mouseup', {}));
+            }, { passive: false });
+
+            setupMicEvents();
+        });
+
+        // --- CANVAS CONTROLLERS ---
+        function resizeCanvasToResolution() {
+            const size = parseInt(canvasResSelect.value) || 1024;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            if (canvas.width > 0) tempCtx.drawImage(canvas, 0, 0);
+
+            canvas.width = size;
+            canvas.height = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+
+            if (tempCanvas.width > 0) {
+                ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, size, size);
+            }
+        }
+
+        // --- STYLE SYSTEMS ---
+        function initStyleLibrary() {
+            for (const [cat, items] of Object.entries(STYLE_CATEGORIES)) {
+                const container = document.getElementById(`list-${cat}`);
+                container.innerHTML = '';
+                items.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = `style-item style-item-unit ${item.id === currentActiveStyle ? 'active' : ''}`;
+                    btn.dataset.id = item.id;
+                    btn.dataset.name = item.name.toLowerCase();
+                    btn.innerHTML = `<span>${item.name}</span>`;
+                    btn.onclick = () => selectStyle(item.id);
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        window.toggleSection = function(sectionId) {
+            const el = document.getElementById(sectionId);
+            const isOpen = el.classList.contains('open');
+            document.querySelectorAll('.accordion-section').forEach(s => s.classList.remove('open'));
+            if (!isOpen) el.classList.add('open');
+        };
+
+        function selectStyle(styleId) {
+            currentActiveStyle = styleId;
+            document.querySelectorAll('.style-item').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.id === styleId);
+            });
+        }
+
+        function filterStyles() {
+            const query = styleSearch.value.toLowerCase().trim();
+            document.querySelectorAll('.style-item-unit').forEach(item => {
+                item.style.display = item.dataset.name.includes(query) ? 'flex' : 'none';
+            });
+            if (query.length > 0) {
+                document.querySelectorAll('.accordion-section').forEach(s => s.classList.add('open'));
+            }
+        }
+
+        // --- OUTLINE INJECTION & DRAWING INTERACTION (FIXED SCALE) ---
+        function buildAndInjectOutlines() {
+            const kidsScroll = document.getElementById('kidsOutlines');
+            kidsScroll.innerHTML = '';
+            KIDS_NAMES.forEach((name, idx) => {
+                const htmlSvg = makeKidsSvg(name, idx);
+                const box = document.createElement('div');
+                box.className = 'library-item';
+                box.innerHTML = htmlSvg;
+                box.onclick = () => loadOutlineIntoCanvas(htmlSvg);
+                kidsScroll.appendChild(box);
+            });
+
+            const adultScroll = document.getElementById('adultOutlines');
+            adultScroll.innerHTML = '';
+            ADULT_NAMES.forEach((name, idx) => {
+                const htmlSvg = makeAdultSvg(name, idx);
+                const box = document.createElement('div');
+                box.className = 'library-item';
+                box.innerHTML = htmlSvg;
+                box.onclick = () => loadOutlineIntoCanvas(htmlSvg);
+                adultScroll.appendChild(box);
+            });
+        }
+
+        function loadOutlineIntoCanvas(svgString) {
+            const img = new Image();
+            // Create blobs cleanly to avoid scaling pixelation artifacts / crisp vectors
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = () => {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Perfect Aspect Ratio Centered Padding Calculation Matrix
+                const padding = canvas.width * 0.05;
+                const targetSize = canvas.width - (padding * 2);
+                
+                ctx.drawImage(img, padding, padding, targetSize, targetSize);
+                URL.revokeObjectURL(url);
+                saveHistory();
+            };
+            img.src = url;
+        }
+
+        // --- CORE DRAWING MECHANICS ---
+        window.setTool = function(toolName) {
+            currentTool = toolName;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        };
+
+        function getCanvasMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                y: (e.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getCanvasMousePos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+
+            if (currentTool === 'bucket') {
+                floodFill(Math.floor(pos.x), Math.floor(pos.y), hexToRgb(activeColor));
+                isDrawing = false;
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getCanvasMousePos(e);
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+
+            const size = parseInt(brushSizeSlider.value) || 8;
+            const opacity = (parseInt(brushOpacitySlider.value) || 100) / 100;
+
+            ctx.lineWidth = size;
+            if (currentTool === 'eraser') {
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.globalAlpha = 1.0;
+            } else {
+                ctx.strokeStyle = activeColor;
+                ctx.globalAlpha = opacity;
+            }
+
+            if (currentTool === 'pencil') ctx.lineWidth = Math.max(2, size * 0.3);
+            else if (currentTool === 'pen') ctx.lineWidth = size * 0.6;
+            else if (currentTool === 'paint') ctx.lineWidth = size * 1.8;
+
+            ctx.stroke();
+            ctx.closePath();
+
+            lastX = pos.x;
+            lastY = pos.y;
+            ctx.globalAlpha = 1.0;
+        }
+
+        function stopDrawing() {
+            if (isDrawing) { isDrawing = false; saveHistory(); }
+        }
+
+        window.clearCanvas = function() {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            saveHistory();
+        };
+
+        function floodFill(startX, startY, fillColor) {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const targetIdx = (startY * width + startX) * 4;
+            const startR = data[targetIdx];
+            const startG = data[targetIdx + 1];
+            const startB = data[targetIdx + 2];
+            const startA = data[targetIdx + 3];
+
+            if (matchColor(startR, startG, startB, startA, fillColor.r, fillColor.g, fillColor.b, 255)) return;
+
+            const queue = [[startX, startY]];
+            while (queue.length > 0) {
+                const [cx, cy] = queue.pop();
+                const idx = (cy * width + cx) * 4;
+
+                if (matchColor(data[idx], data[idx+1], data[idx+2], data[idx+3], startR, startG, startB, startA)) {
+                    data[idx] = fillColor.r;
+                    data[idx+1] = fillColor.g;
+                    data[idx+2] = fillColor.b;
+                    data[idx+3] = 255;
+
+                    if (cx > 0) queue.push([cx - 1, cy]);
+                    if (cx < width - 1) queue.push([cx + 1, cy]);
+                    if (cy > 0) queue.push([cx, cy - 1]);
+                    if (cy < height - 1) queue.push([cx, cy + 1]);
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        function matchColor(r1, g1, b1, a1, r2, g2, b2, a2) {
+            return Math.abs(r1 - r2) < 20 && Math.abs(g1 - g2) < 20 && Math.abs(b1 - b2) < 20 && Math.abs(a1 - a2) < 20;
+        }
+
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+        }
+
+        function initColorPalette() {
+            const container = document.getElementById('colorPalette');
+            container.innerHTML = '';
+            PALETTE_COLORS.forEach(color => {
+                const dot = document.createElement('div');
+                dot.className = `color-dot ${color === activeColor ? 'active' : ''}`;
+                dot.style.backgroundColor = color;
+                dot.onclick = () => {
+                    activeColor = color;
+                    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                };
+                container.appendChild(dot);
+            });
+        }
+
+        // --- HISTORY TRACK SYSTEM ---
+        function saveHistory() {
+            if (historyIndex < historyStack.length - 1) {
+                historyStack = historyStack.slice(0, historyIndex + 1);
+            }
+            historyStack.push(canvas.toDataURL());
+            historyIndex++;
+            updateHistoryButtons();
+        }
+
+        window.undo = function() {
+            if (historyIndex > 0) { historyIndex--; loadHistoryState(); }
+        };
+
+        window.redo = function() {
+            if (historyIndex < historyStack.length - 1) { historyIndex++; loadHistoryState(); }
+        };
+
+        function loadHistoryState() {
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                updateHistoryButtons();
+            };
+            img.src = historyStack[historyIndex];
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undoBtn').disabled = (historyIndex <= 0);
+            document.getElementById('redoBtn').disabled = (historyIndex >= historyStack.length - 1);
+        }
+
+        // --- EXPORT MATRIX ---
+        window.exportImage = function() {
+            const format = document.getElementById('exportFormat').value;
+            const filename = `nkarik-export-${Date.now()}`;
+            if (format === 'svg') {
+                const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}"><image href="${canvas.toDataURL()}" width="${canvas.width}" height="${canvas.height}"/></svg>`;
+                triggerDownload(URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })), `${filename}.svg`);
+            } else if (format === 'jpg') {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+                const tCtx = tempCanvas.getContext('2d');
+                tCtx.fillStyle = '#FFFFFF'; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                tCtx.drawImage(canvas, 0, 0);
+                triggerDownload(tempCanvas.toDataURL('image/jpeg', 0.95), `${filename}.jpg`);
+            } else {
+                triggerDownload(canvas.toDataURL('image/png'), `${filename}.png`);
+            }
+        };
+
+        function triggerDownload(url, fn) {
+            const a = document.createElement('a'); a.href = url; a.download = fn; a.click();
+        }
+
+        // --- ADVANCED VOICE COMMAND SYSTEM ---
+        function initVoiceSystem() {
+            const SpeechEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechEngine) {
+                micBtn.textContent = "🎙️ Voice Unsupported";
+                micBtn.disabled = true;
+                return;
+            }
+            recognition = new SpeechEngine();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isVoiceRecording = true;
+                micBtn.classList.add('recording');
+                micBtn.textContent = "🛑 Լսում եմ... Խոսեք";
+            };
+
+            recognition.onend = () => {
+                isVoiceRecording = false;
+                micBtn.classList.remove('recording');
+                micBtn.textContent = voiceMode === "toggle" ? "🎤 Սեղմիր և Խոսիր" : "🎤 Պահիր և Խոսիր";
+            };
+
+            recognition.onresult = (event) => {
+                const resultText = event.results[0][0].transcript;
+                promptInput.value = resultText;
+                // Instant Auto Flow: Translate and prepare for generation
+                processAI(false);
+            };
+
+            recognition.onerror = (e) => {
+                console.error("Voice matching exception token:", e);
+                micBtn.classList.remove('recording');
+            };
+        }
+
+        window.setVoiceMode = function(mode) {
+            voiceMode = mode;
+            document.getElementById('vModeToggle').classList.toggle('active', mode === 'toggle');
+            document.getElementById('vModeHold').classList.toggle('active', mode === 'hold');
+            micBtn.textContent = mode === "toggle" ? "🎤 Սեղմիր և Խոսիր" : "🎤 Պահիր և Խոսիր";
+        };
+
+        function setupMicEvents() {
+            // Toggle Mode Click Controller
+            micBtn.addEventListener('click', (e) => {
+                if (voiceMode !== 'toggle') return;
+                if (isVoiceRecording) {
+                    recognition.stop();
+                } else {
+                    recognition.lang = voiceLangSelect.value;
+                    recognition.start();
+                }
+            });
+
+            // Hold To Talk Mechanics (touchstart/mousedown combined safely for mobile UX compatibility)
+            const startHold = (e) => {
+                if (voiceMode !== 'hold') return;
+                e.preventDefault();
+                if (!isVoiceRecording) {
+                    recognition.lang = voiceLangSelect.value;
+                    recognition.start();
+                }
+            };
+
+            const endHold = (e) => {
+                if (voiceMode !== 'hold') return;
+                e.preventDefault();
+                if (isVoiceRecording) {
+                    recognition.stop();
+                }
+            };
+
+            micBtn.addEventListener('mousedown', startHold);
+            micBtn.addEventListener('mouseup', endHold);
+            micBtn.addEventListener('mouseleave', endHold);
+
+            micBtn.addEventListener('touchstart', startHold, { passive: false });
+            micBtn.addEventListener('touchend', endHold, { passive: false });
+        }
+
+        // --- PROMPT ENGINE ENGINE & RE-TRY LOADER ---
+        function translateText(text) {
+            let processed = text.toLowerCase().trim();
+            for (const [nativeWord, englishWord] of Object.entries(TRANSLATION_DICTIONARY)) {
+                const regex = new RegExp(nativeWord, 'g');
+                processed = processed.replace(regex, englishWord);
+            }
+            return processed;
+        }
+
+        function getStylePromptById(id) {
+            for (const list of Object.values(STYLE_CATEGORIES)) {
+                const found = list.find(item => item.id === id);
+                if (found) return found.prompt;
+            }
+            return "beautiful painting art style";
+        }
+
+        async function processAI(isVideoMode) {
+            const rawPrompt = promptInput.value.trim() || "տիեզերական խնձոր";
+            const stylePromptText = getStylePromptById(currentActiveStyle);
+            const translatedPrompt = translateText(rawPrompt);
+
+            // Structuring exact request template sequence
+            const finalPrompt = `${stylePromptText}, ${translatedPrompt}, highly detailed, masterpiece, professional lighting, ultra quality, beautiful composition`;
+
+            loadingText.style.display = 'block';
+            loadingStatusText.textContent = isVideoMode ? "Կառուցվում է անիմացիոն տեսանյութը..." : "Արհեստական բանականությունը նկարում է...";
+            resultPanel.style.display = 'none';
+            generateBtn.disabled = true;
+            videoBtn.disabled = true;
+
+            const seed = Math.floor(Math.random() * 9999999);
+            const url = `https://image.pollinations.ai/p/${encodeURIComponent(finalPrompt)}?width=512&height=512&seed=${seed}&nologo=true&enhance=true`;
+
+            tryFetchImage(url, isVideoMode, 1);
+        }
+
+        function tryFetchImage(url, isVideoMode, attempt) {
+            const img = new Image();
+            img.src = url;
+            img.onload = () => {
+                loadingText.style.display = 'none';
+                generateBtn.disabled = false;
+                videoBtn.disabled = false;
+                resultPanel.style.display = 'flex';
+
+                if (isVideoMode) {
+                    resultImg.style.display = 'none';
+                    videoContainer.style.display = 'block';
+                    videoFake.src = url;
+                } else {
+                    videoContainer.style.display = 'none';
+                    resultImg.style.display = 'block';
+                    resultImg.src = url;
+                }
+                resultPanel.scrollIntoView({ behavior: 'smooth' });
+            };
+            img.onerror = () => {
+                if (attempt < 4) {
+                    setTimeout(() => tryFetchImage(url, isVideoMode, attempt + 1), 1500);
+                } else {
+                    loadingText.style.display = 'none';
+                    generateBtn.disabled = false;
+                    videoBtn.disabled = false;
+                    alert("⚠️ Կապի խափանում: Պատկերը չհաջողվեց բեռնել, կրկին փորձեք:");
+                }
+            };
+        }
+
+        generateBtn.onclick = () => processAI(false);
+        videoBtn.onclick = () => processAI(true);
+
+        document.getElementById('downloadBtn').onclick = async () => {
+            const currentSrc = resultImg.style.display !== 'none' ? resultImg.src : videoFake.src;
+            const res = await fetch(currentSrc);
+            triggerDownload(window.URL.createObjectURL(await res.blob()), `nkarik-ai-${Date.now()}.png`);
+        };
+
+        document.getElementById('newBtn').onclick = () => {
+            resultPanel.style.display = 'none';
+            clearCanvas();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    })();
+</script>
+</body>
+</html>
