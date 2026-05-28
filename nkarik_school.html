@@ -3,146 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Նկարիկ Դպրոցական (8-17)</title>
-    <link rel="stylesheet" href="shared/styles.css">
+    <title>🤖 Նկարիկ AI - School Studio</title>
     <style>
-        .mode-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 10px; background: white; border-radius: 15px; border: none; cursor: pointer; font-weight: bold; }
-        .tab.active { background: var(--arm-red); color: white; }
+        :root {
+            --glass: rgba(255, 255, 255, 0.8);
+            --accent-red: #D90012;
+            --accent-blue: #0033A0;
+            --neon-blue: #00f3ff;
+        }
 
-        .main-layout { display: flex; flex-direction: column; gap: 15px; }
-        .canvas-area { background: white; border-radius: 20px; position: relative; aspect-ratio: 1; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; }
-        canvas { width: 100%; height: 100%; touch-action: none; }
-        #guideOverlay { position: absolute; inset: 0; pointer-events: none; opacity: 0.2; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .style-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 15px; }
-        .style-item { background: white; border-radius: 10px; padding: 5px; text-align: center; cursor: pointer; font-size: 0.7rem; border: 2px solid transparent; }
-        .style-item.active { border-color: var(--arm-orange); background: #fff5e6; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
 
-        .prompt-area { display: flex; gap: 5px; }
-        input { flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid #ddd; }
+        .back-btn {
+            position: fixed; top: 20px; left: 20px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--glass); border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 100; backdrop-filter: blur(10px);
+        }
 
-        .gen-btn { width: 100%; padding: 15px; border-radius: 30px; border: none; background: linear-gradient(135deg, var(--arm-red), var(--arm-blue)); color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin: 10px 0; }
+        .container { max-width: 600px; width: 100%; margin-top: 50px; display: flex; flex-direction: column; gap: 15px; }
 
-        .result-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; padding: 20px; }
-        .result-img { max-width: 100%; border-radius: 20px; box-shadow: 0 0 30px rgba(255,255,255,0.2); margin-bottom: 15px; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
 
-        .templates { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
-        .tmpl-card { min-width: 60px; height: 60px; background: white; border-radius: 10px; display: flex; items-center; justify-center; cursor: pointer; padding: 5px; }
-        .tmpl-card svg { width: 100%; height: 100%; }
+        .mode-selector { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .mode-btn {
+            padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05); color: white; font-weight: 600; cursor: pointer;
+            white-space: nowrap; transition: 0.3s; font-size: 0.8rem;
+        }
+        .mode-btn.active { background: var(--accent-blue); border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,243,255,0.3); }
 
-        .loading { display: none; color: white; margin-bottom: 10px; }
+        .canvas-container {
+            position: relative; width: 100%; aspect-ratio: 1;
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+        #particleCanvas { pointer-events: none; z-index: 3; }
+
+        .tool-grid { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
+        .tool-btn {
+            width: 44px; height: 44px; border-radius: 50%; border: none;
+            background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: 0.2s;
+        }
+        .tool-btn.active { transform: scale(1.1); box-shadow: 0 0 15px var(--neon-blue); border: 2px solid var(--neon-blue); }
+
+        .brush-props { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        input[type="range"] { width: 100%; accent-color: var(--neon-blue); }
+
+        .style-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        .style-thumb {
+            aspect-ratio: 1; border-radius: 10px; background: rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; items-center; justify-center;
+            cursor: pointer; border: 2px solid transparent; transition: 0.2s; font-size: 0.6rem;
+        }
+        .style-thumb.active { border-color: var(--neon-blue); background: rgba(0,243,255,0.1); }
+        .style-thumb span { font-size: 1.2rem; margin-bottom: 2px; }
+
+        .ai-action {
+            width: 100%; padding: 16px; border-radius: 20px; border: none;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-blue));
+            color: white; font-weight: 800; font-size: 1.1rem; cursor: pointer;
+            margin-top: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        .ai-action:active { transform: scale(0.98); }
+        .ai-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #resultOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; items-center; justify-center;
+            z-index: 2000; padding: 20px;
+        }
+        .res-card { max-width: 500px; width: 100%; position: relative; }
+        .res-img { width: 100%; border-radius: 25px; box-shadow: 0 0 50px rgba(0,243,255,0.3); }
+        .res-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+
+        .suggestion-chip {
+            display: inline-block; padding: 6px 12px; border-radius: 15px;
+            background: rgba(255,255,255,0.1); margin: 5px; cursor: pointer;
+            font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .suggestion-chip:hover { background: var(--accent-blue); }
+
+        #loader { display: none; text-align: center; margin-bottom: 15px; }
+        .typing { overflow: hidden; border-right: .15em solid orange; white-space: nowrap; animation: typing 1s steps(20, end), blink-caret .75s step-end infinite; }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: orange; } }
     </style>
 </head>
 <body>
     <button class="back-btn" onclick="location.href='index.html'">🏠</button>
+
     <div class="container">
-        <h1 style="text-align: center; margin-bottom: 10px;">🤖 ԴՊՐՈՑԱԿԱՆ</h1>
+        <div class="glass-card">
+            <h1 style="text-align:center; margin-bottom:15px; font-weight:900">🤖 SCHOOL STUDIO</h1>
 
-        <div class="mode-tabs">
-            <button class="tab active" onclick="setMode('trace', this)">Ուրվագիծ</button>
-            <button class="tab" onclick="setMode('free', this)">Ազատ</button>
-            <button class="tab" onclick="setMode('prompt', this)">Պրոմփթ</button>
-        </div>
-
-        <div class="main-layout">
-            <div id="templateSection">
-                <div class="templates" id="tmplList"></div>
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="setMode('sketch', this)">Sketch-to-Art</button>
+                <button class="mode-btn" onclick="setMode('doodle', this)">Doodle-to-Char</button>
+                <button class="mode-btn" onclick="setMode('coloring', this)">AI Coloring</button>
+                <button class="mode-btn" onclick="setMode('dream', this)">Dream Mode</button>
             </div>
 
-            <div class="canvas-area" id="canvasBox">
-                <canvas id="paintCanvas"></canvas>
-                <div id="guideOverlay"></div>
+            <div class="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+                <canvas id="particleCanvas"></canvas>
             </div>
 
-            <div class="style-grid" id="styleGrid"></div>
-
-            <div class="prompt-area">
-                <input type="text" id="userInput" placeholder="Ի՞նչ նկարենք...">
+            <div class="tool-grid">
+                <button class="tool-btn active" onclick="setTool('brush', this)">🖌️</button>
+                <button class="tool-btn" onclick="setTool('neon', this)">✨</button>
+                <button class="tool-btn" onclick="setTool('particle', this)">💨</button>
+                <button class="tool-btn" onclick="setTool('oil', this)">🖼️</button>
+                <button class="tool-btn" onclick="setTool('eraser', this)">🧽</button>
+                <button class="tool-btn" onclick="clearCanvas()">🗑️</button>
             </div>
 
-            <button class="gen-btn" id="generateBtn" onclick="generateAI()">ԿԵՆԴԱՆԱՑՆԵԼ ✨</button>
+            <div class="brush-props">
+                <div>Size: <span id="valSize">10</span>px<br><input type="range" min="1" max="50" value="10" oninput="brushSize=this.value; valSize.innerText=this.value"></div>
+                <div>Opacity: <span id="valOp">100</span>%<br><input type="range" min="1" max="100" value="100" oninput="brushOpacity=this.value/100; valOp.innerText=this.value"></div>
+            </div>
+
+            <div class="style-gallery" id="styleGrid"></div>
+
+            <div style="margin-top:15px">
+                <input type="text" id="promptIn" placeholder="Նկարագրիր քո գաղափարը..." style="width:100%; padding:12px; border-radius:15px; border:none; background:rgba(255,255,255,0.1); color:white; outline:none">
+            </div>
+
+            <div id="suggestions" style="margin-top:10px; display:none">
+                <div class="suggestion-chip" onclick="applySuggestion('improve drawing')">🪄 Բարելավել</div>
+                <div class="suggestion-chip" onclick="applySuggestion('make realistic')">📸 Ռեալիստիկ</div>
+                <div class="suggestion-chip" onclick="applySuggestion('make anime')">⚡ Անիմե</div>
+                <div class="suggestion-chip" onclick="applySuggestion('make fantasy')">🐉 Ֆենթեզի</div>
+                <div class="suggestion-chip" onclick="applySuggestion('make 3D')">🧊 3D</div>
+            </div>
+
+            <button class="ai-action" id="genBtn" onclick="generate()">ԿԵՆԴԱՆԱՑՆԵԼ ✨</button>
         </div>
     </div>
 
-    <div class="result-overlay" id="resultOverlay">
-        <div class="loading" id="loader">🎨 AI-ն աշխատում է...</div>
-        <img id="resImg" class="result-img">
-        <div style="display: flex; gap: 10px;">
-            <button class="tab" onclick="closeRes()">Նորից</button>
-            <button class="tab" id="downBtn" style="background: var(--arm-orange); color: white;">Պահպանել</button>
+    <div id="resultOverlay">
+        <div id="loader"><h2 class="typing">🎨 AI-ն կերտում է քո արվեստը...</h2></div>
+        <div class="res-card">
+            <img id="resImg" class="res-img">
+            <div class="res-actions">
+                <button class="mode-btn" onclick="resOverlay.style.display='none'">ՆՈՐԻՑ</button>
+                <button class="mode-btn active" onclick="download()">ՊԱՀՊԱՆԵԼ</button>
+            </div>
         </div>
     </div>
 
     <script src="shared/templates.js"></script>
     <script>
-        const canvas = document.getElementById('paintCanvas');
-        const ctx = canvas.getContext('2d');
-        const guide = document.getElementById('guideOverlay');
+        const canvas = document.getElementById('mainCanvas');
+        const pCanvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d', {willReadFrequently:true});
+        const pCtx = pCanvas.getContext('2d');
+        const resOverlay = document.getElementById('resultOverlay');
+        const resImg = document.getElementById('resImg');
+        const genBtn = document.getElementById('genBtn');
+        const loader = document.getElementById('loader');
 
-        let mode = 'trace';
-        let selectedTmpl = null;
-        let selectedStyle = 'cartoon';
         let isDrawing = false;
+        let brushSize = 10;
+        let brushOpacity = 1;
+        let currentTool = 'brush';
+        let currentStyle = 'cartoon';
+        let currentMode = 'sketch';
+        let points = [];
+        let particles = [];
+
+        const MODES = {
+            sketch: 'professional digital art based on user sketch, masterpiece',
+            doodle: 'character design, high quality, clean lines, child friendly',
+            coloring: 'vibrant colors, clean black outlines, high quality illustration',
+            dream: 'surreal imaginative fantasy world, highly detailed'
+        };
 
         function init() {
-            const size = document.getElementById('canvasBox').clientWidth;
-            canvas.width = canvas.height = size;
-            ctx.lineCap = 'round';
-            ctx.lineWidth = 5;
-            ctx.strokeStyle = '#000';
-
+            resize();
             renderStyles();
-            renderTmpls();
+            window.onresize = resize;
+            loop();
         }
 
-        function setMode(m, el) {
-            mode = m;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-
-            document.getElementById('templateSection').style.display = (m === 'trace') ? 'block' : 'none';
-            document.getElementById('canvasBox').style.display = (m === 'prompt') ? 'none' : 'block';
-
-            if (m !== 'trace') {
-                selectedTmpl = null;
-                guide.innerHTML = '';
-            }
-            clearCanvas();
+        function resize() {
+            const size = canvas.parentElement.clientWidth;
+            canvas.width = canvas.height = pCanvas.width = pCanvas.height = size;
+            ctx.lineCap = ctx.lineJoin = 'round';
         }
 
         function renderStyles() {
             const grid = document.getElementById('styleGrid');
-            ART_STYLES.slice(0, 12).forEach(s => {
+            ART_STYLES.slice(0, 8).forEach(s => {
                 const item = document.createElement('div');
-                item.className = `style-item ${s.id === selectedStyle ? 'active' : ''}`;
-                item.innerHTML = `<div>${s.label.split(' ')[1]}</div><div>${s.label.split(' ')[0]}</div>`;
+                item.className = `style-thumb ${s.id === currentStyle ? 'active' : ''}`;
+                item.innerHTML = `<span>${s.label.split(' ')[1]}</span>${s.label.split(' ')[0]}`;
                 item.onclick = () => {
-                    selectedStyle = s.id;
-                    document.querySelectorAll('.style-item').forEach(i => i.classList.remove('active'));
+                    currentStyle = s.id;
+                    document.querySelectorAll('.style-thumb').forEach(el=>el.classList.remove('active'));
                     item.classList.add('active');
                 };
                 grid.appendChild(item);
             });
         }
 
-        function renderTmpls() {
-            const list = document.getElementById('tmplList');
-            const allowed = GUIDED_TEMPLATES.filter(t => t.cat === 'objects' || t.cat === 'en_letters' || t.cat === 'numbers');
-            allowed.forEach(t => {
-                const card = document.createElement('div');
-                card.className = 'tmpl-card';
-                card.innerHTML = t.svg;
-                card.onclick = () => {
-                    selectedTmpl = t;
-                    guide.innerHTML = t.svg;
-                    clearCanvas();
-                };
-                list.appendChild(card);
-            });
-        }
+        canvas.onmousedown = canvas.ontouchstart = (e) => {
+            if(e.type==='touchstart') e.preventDefault();
+            isDrawing = true;
+            points = [getPos(e)];
+        };
 
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        window.onmousemove = window.ontouchmove = (e) => {
+            if(!isDrawing) return;
+            const p = getPos(e);
+
+            if(currentTool === 'particle') {
+                createParticles(p.x, p.y);
+            } else {
+                draw(points[points.length-1], p);
+            }
+            points.push(p);
+        };
+
+        window.onmouseup = window.ontouchend = () => { isDrawing = false; document.getElementById('suggestions').style.display='block'; };
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
@@ -151,73 +256,132 @@
             return { x: cx - rect.left, y: cy - rect.top };
         }
 
-        canvas.onmousedown = canvas.ontouchstart = (e) => {
-            isDrawing = true;
-            const p = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-        };
-        window.onmousemove = window.ontouchmove = (e) => {
-            if (!isDrawing) return;
-            const p = getPos(e);
-            ctx.lineTo(p.x, p.y);
-            ctx.stroke();
-        };
-        window.onmouseup = window.ontouchend = () => isDrawing = false;
+        function draw(p1, p2) {
+            ctx.globalAlpha = brushOpacity;
+            ctx.lineWidth = brushSize;
 
-        function translate(text) {
-            const words = text.toLowerCase().split(' ');
-            return words.map(w => DICTIONARY_MAP[w] || w).join(' ');
-        }
-
-        async function generateAI() {
-            const userText = document.getElementById('userInput').value.trim();
-            const styleObj = ART_STYLES.find(s => s.id === selectedStyle);
-
-            let core = 'whimsical illustration';
-            if (selectedTmpl) {
-                if (selectedTmpl.cat === 'objects') core = `cute cheerful ${selectedTmpl.id}`;
-                else if (selectedTmpl.cat === 'en_letters') core = `decorative artistic English letter "${selectedTmpl.label.en}" as beautiful typography`;
-                else if (selectedTmpl.cat === 'numbers') core = `creative stylized number "${selectedTmpl.label.en}" as artistic numeral`;
-            } else if (userText) {
-                core = translate(userText);
+            if(currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = currentTool === 'neon' ? '#00f3ff' : (currentTool === 'oil' ? '#5d4037' : '#000');
             }
 
-            const prompt = `${core}, ${styleObj.prompt}, child friendly illustration, high quality, clean background`;
+            if(currentTool === 'neon') {
+                ctx.shadowBlur = 10; ctx.shadowColor = '#00f3ff';
+            } else {
+                ctx.shadowBlur = 0;
+            }
 
-            document.getElementById('resultOverlay').style.display = 'flex';
-            document.getElementById('loader').style.display = 'block';
-            document.getElementById('resImg').src = '';
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+        }
+
+        function createParticles(x, y) {
+            for(let i=0; i<5; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random()-0.5)*5,
+                    vy: (Math.random()-0.5)*5,
+                    life: 1,
+                    c: `hsl(${Math.random()*360}, 100%, 50%)`
+                });
+            }
+        }
+
+        function loop() {
+            pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+            particles = particles.filter(p => {
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.02;
+                if(p.life > 0) {
+                    pCtx.globalAlpha = p.life;
+                    pCtx.fillStyle = p.c;
+                    pCtx.beginPath();
+                    pCtx.arc(p.x, p.y, brushSize/2, 0, Math.PI*2);
+                    pCtx.fill();
+                    return true;
+                }
+                return false;
+            });
+            requestAnimationFrame(loop);
+        }
+
+        function setTool(t, btn) {
+            currentTool = t;
+            document.querySelectorAll('.tool-btn').forEach(el=>el.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function setMode(m, btn) {
+            currentMode = m;
+            document.querySelectorAll('.mode-btn').forEach(el=>el.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+        function translateToEnglish(text) {
+            if (!text) return "";
+            let translated = text.toLowerCase();
+            for (const [en, common] of Object.entries(DICTIONARY_MAP)) {
+                if (common.hy.includes(translated) || common.ru.includes(translated)) {
+                    return en;
+                }
+            }
+            return text;
+        }
+
+        async function generate() {
+            const userText = document.getElementById('promptIn').value.trim();
+            const translatedText = translateToEnglish(userText);
+            const styleObj = ART_STYLES.find(s => s.id === currentStyle);
+
+            genBtn.disabled = true;
+            resOverlay.style.display = 'flex';
+            loader.style.display = 'block';
+            resImg.style.display = 'none';
+
+            // Composite prompt
+            const prompt = `${translatedText || 'creative illustration'}, ${MODES[currentMode]}, ${styleObj.prompt}, child friendly, high quality, cinematic lighting`;
 
             try {
+                // Pure client-side Pollinations integration
                 const seed = Math.floor(Math.random() * 9999999);
-                const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=512&height=512&seed=${seed}&nofeed=true&nologo=true`;
+                const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=512&height=512&seed=${seed}&nologo=true&nofeed=true`;
 
-                const res = await fetch(url);
-                const blob = await res.blob();
-                const imgUrl = URL.createObjectURL(blob);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("AI request failed");
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
 
-                document.getElementById('resImg').src = imgUrl;
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('downBtn').onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = imgUrl;
-                    a.download = 'nkarik-school.png';
-                    a.click();
+                resImg.src = objectURL;
+                resImg.onload = () => {
+                    loader.style.display = 'none';
+                    resImg.style.display = 'block';
+                    genBtn.disabled = false;
                 };
             } catch (e) {
-                alert('Սխալ պատահեց: Փորձեք կրկին');
-                closeRes();
+                alert("Generation error. Please check your connection and try again.");
+                resOverlay.style.display = 'none';
+                genBtn.disabled = false;
             }
         }
 
-        function closeRes() { document.getElementById('resultOverlay').style.display = 'none'; }
+        function applySuggestion(text) {
+            const promptIn = document.getElementById('promptIn');
+            promptIn.value += (promptIn.value ? ', ' : '') + text;
+            generate();
+        }
 
-        window.onresize = () => {
-            const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            init();
-            ctx.putImageData(data, 0, 0);
-        };
+        function download() {
+            const link = document.createElement('a');
+            link.download = 'nkarik_school_ai.png';
+            link.href = resImg.src;
+            link.click();
+        }
 
         document.addEventListener('DOMContentLoaded', init);
     </script>

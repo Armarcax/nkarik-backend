@@ -1,550 +1,316 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nkarik PRO (18+)</title>
-    <link rel="stylesheet" href="shared/styles.css">
-    <style>
-        .pro-layout { display: flex; flex-direction: column; gap: 15px; width: 100%; }
-        .canvas-container { background: white; border-radius: 20px; aspect-ratio: 1; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; position: relative; }
-        canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
-
-        .controls-panel { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .control-group { margin-bottom: 15px; }
-        .control-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; font-size: 0.8rem; }
-
-        input[type="range"] { width: 100%; }
-        input[type="text"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
-
-        .toggle-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 0.8rem; }
-        .toggle-btn.active { background: var(--arm-blue); color: white; border-color: var(--arm-blue); }
-
-        .style-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 15px; }
-        .style-item { background: white; border-radius: 8px; padding: 8px 2px; text-align: center; cursor: pointer; font-size: 0.6rem; border: 2px solid transparent; }
-        .style-item.active { border-color: var(--arm-orange); background: #f0f7ff; }
-
-        .action-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
-        .btn-main { padding: 15px; border-radius: 30px; border: none; background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; font-weight: bold; cursor: pointer; }
-        .btn-sec { padding: 15px; border-radius: 30px; border: 1px solid #1a1a2e; background: white; cursor: pointer; }
-
-        .result-view { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; items-center; justify-center; z-index: 4000; padding: 20px; }
-        .res-img { max-width: 100%; max-height: 70vh; border-radius: 15px; margin-bottom: 20px; }
-        .loader { color: white; margin-bottom: 20px; text-align: center; }
-
-        .tool-bar { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
-        .tool-icon { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ddd; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .tool-icon.active { background: var(--arm-orange); color: white; }
-    </style>
-</head>
-<body>
-    <button class="back-btn" onclick="location.href='index.html'">🏠</button>
-    <div class="container">
-        <h1 style="text-align: center; margin-bottom: 15px;">🎓 Nkarik PRO</h1>
-
-        <div class="pro-layout">
-            <div class="tool-bar">
-                <div class="tool-icon active" onclick="setTool('brush', this)">🖌️</div>
-                <div class="tool-icon" onclick="setTool('pencil', this)">✏️</div>
-                <div class="tool-icon" onclick="setTool('marker', this)">🖍️</div>
-                <div class="tool-icon" onclick="setTool('eraser', this)">🧽</div>
-                <div class="tool-icon" onclick="clearCanvas()">🗑️</div>
-            </div>
-
-            <div class="canvas-container" id="cBox">
-                <canvas id="proCanvas"></canvas>
-            </div>
-
-            <div class="controls-panel">
-                <input type="text" id="promptIn" placeholder="Describe your masterpiece...">
-
-                <div class="style-grid" id="proStyles"></div>
-
-                <div class="control-group">
-                    <div class="control-label"><span>Resolution</span><span id="resVal">512</span></div>
-                    <input type="range" id="resSlider" min="256" max="1024" step="256" value="512">
-                </div>
-
-                <div class="control-group">
-                    <div class="control-label"><span>CFG Scale (Guidance)</span><span id="cfgVal">7.5</span></div>
-                    <input type="range" id="cfgSlider" min="1" max="20" step="0.5" value="7.5">
-                </div>
-
-                <div class="control-group">
-                    <div class="control-label"><span>Seed (0 = Random)</span></div>
-                    <input type="text" id="seedIn" value="0">
-                </div>
-
-                <div class="toggle-group">
-                    <button class="toggle-btn" id="detailTog" onclick="this.classList.toggle('active')">High Detail</button>
-                    <button class="toggle-btn" id="darkTog" onclick="this.classList.toggle('active')">Dark Mode</button>
-                </div>
-
-                <div class="action-btns">
-                    <button class="btn-main" onclick="generatePro()">GENERATE ART</button>
-                    <button class="btn-sec" onclick="generateVariation()">VARIATION</button>
-                </div>
 <html lang="hy">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🎓 Նկարիկ - Պրոֆեսիոնալ (18+)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Nkarik PRO AI Studio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+        :root {
+            --bg: #0a0a12;
+            --glass: rgba(255, 255, 255, 0.05);
+            --accent: #6c5ce7;
+            --neon: #00f3ff;
+            --border: rgba(255, 255, 255, 0.1);
         }
 
-        @keyframes rainbowBg {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #1a1a2e 75%, #16213e 100%);
-            background-size: 400% 400%;
-            animation: rainbowBg 25s ease infinite;
-            min-height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg); color: white;
+            min-height: 100vh; overflow: hidden;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            overflow-y: auto;
-            color: #E0E0E0;
         }
 
-        .app-card {
-            background: rgba(30, 30, 40, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 32px;
-            padding: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            max-width: 480px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.1);
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 320px; background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(20px); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 20px; gap: 20px;
+            z-index: 10;
         }
 
-        .header { text-align: center; padding: 8px; }
-        .header h1 { font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #E94560, #FF6B6B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header .subtitle { font-size: 13px; color: #888; font-weight: 600; }
+        .logo { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; background: linear-gradient(90deg, #fff, #666); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .control-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #AAA;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .control-panel { display: flex; flex-direction: column; gap: 15px; }
+        .label { font-size: 0.7rem; text-transform: uppercase; color: #666; font-weight: 800; }
 
-        .style-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            max-height: 250px;
-            overflow-y: auto;
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .btn {
+            background: var(--glass); border: 1px solid var(--border);
+            color: #ccc; padding: 10px; border-radius: 8px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600; transition: 0.2s;
         }
-        .style-btn {
-            padding: 10px 4px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            background: rgba(255,255,255,0.05);
-            color: #CCC;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .style-btn:hover { background: rgba(255,255,255,0.1); }
-        .style-btn.active {
-            border-color: #E94560;
-            background: rgba(233, 69, 96, 0.2);
-            color: #E94560;
+        .btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 0 15px rgba(108,92,231,0.3); }
+
+        .slider { width: 100%; accent-color: var(--accent); margin-top: 5px; }
+
+        input[type="text"] {
+            width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; color: white; font-size: 0.85rem; outline: none;
         }
 
-        .slider-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        /* --- MAIN VIEW --- */
+        .viewport { flex: 1; position: relative; display: flex; flex-direction: column; }
+
+        .canvas-container { flex: 1; background: #000; position: relative; }
+        canvas { width: 100% !important; height: 100% !important; }
+
+        #drawingLayer { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0.5; mix-blend-mode: screen; }
+        #drawingLayer.active { pointer-events: auto; opacity: 1; }
+
+        /* --- TIMELINE --- */
+        .timeline {
+            height: 120px; background: rgba(0,0,0,0.6); border-top: 1px solid var(--border);
+            padding: 10px 20px; display: flex; flex-direction: column; gap: 10px;
         }
-        .slider-row label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #AAA;
-            min-width: 80px;
+        .frames { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: thin; }
+        .frame-thumb {
+            width: 60px; height: 60px; background: #111; border-radius: 6px;
+            flex-shrink: 0; border: 2px solid transparent; cursor: pointer;
+            display: flex; items-center; justify-center; font-size: 0.6rem; color: #444;
         }
-        .slider-row input[type="range"] {
-            flex: 1;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255,255,255,0.1);
-            outline: none;
-            -webkit-appearance: none;
-        }
-        .slider-row input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #E94560;
-            cursor: pointer;
-        }
-        .slider-row span {
-            font-size: 12px;
-            font-weight: 700;
-            color: #E94560;
-            min-width: 40px;
-            text-align: right;
+        .frame-thumb.active { border-color: var(--accent); }
+
+        /* --- OVERLAYS --- */
+        .back-btn { position: absolute; top: 20px; right: 20px; z-index: 100; }
+
+        #loading {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            display: none; flex-direction: column; items-center; justify-center; z-index: 1000;
         }
 
-        .prompt-area {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 16px;
-            font-size: 14px;
-            resize: none;
-            height: 80px;
-            outline: none;
-            font-family: inherit;
-            background: rgba(255,255,255,0.05);
-            color: #E0E0E0;
-        }
-        .prompt-area:focus { border-color: #E94560; }
-        .prompt-area::placeholder { color: #666; }
-
-        .canvas-area {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 1;
-            background: rgba(0,0,0,0.3);
-            border-radius: 24px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            overflow: hidden;
-            touch-action: none;
-        }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
-
-        .tools-row {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-        }
-        .tool-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.1);
-            color: #CCC;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .tool-btn:hover { background: rgba(255,255,255,0.15); }
-        .tool-btn.active { background: linear-gradient(135deg, #E94560, #FF6B6B); color: white; }
-
-        .action-btns { display: flex; gap: 10px; }
-        .big-btn {
-            flex: 1; padding: 14px; border: none; border-radius: 18px;
-            font-size: 15px; font-weight: 800; cursor: pointer; color: white;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            transition: transform 0.1s;
-        }
-        .big-btn:active { transform: scale(0.97); }
-        .big-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-generate { background: linear-gradient(135deg, #E94560, #FF6B6B); }
-        .btn-variation { background: linear-gradient(135deg, #0F3460, #533483); }
-        .btn-clear { background: rgba(255,255,255,0.1); }
-
-        .loading-panel {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        .spinner {
-            width: 40px; height: 40px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: #E94560;
-            border-radius: 50%;
-            margin: 0 auto 10px;
-            animation: spin 1s linear infinite;
-        }
-        .loading-text { font-size: 14px; font-weight: 700; color: #E94560; }
-
-        .result-panel {
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            animation: fadeIn 0.5s ease;
-        }
-        .result-img {
-            width: 100%; aspect-ratio: 1;
-            border-radius: 24px; object-fit: cover;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .history-row { display: flex; gap: 8px; }
-        .hist-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 12px;
-            background: rgba(255,255,255,0.1); color: #CCC;
-            font-size: 13px; font-weight: 700; cursor: pointer;
-        }
-        .hist-btn:hover { background: rgba(255,255,255,0.2); }
-        .hist-btn.primary { background: linear-gradient(135deg, #E94560, #FF6B6B); color: white; }
-
-        .advanced-options {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .option-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .option-row label {
-            font-size: 13px;
-            color: #AAA;
-        }
-        .toggle-switch {
-            width: 44px;
-            height: 24px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .toggle-switch.active {
-            background: #E94560;
-        }
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.2s;
-        }
-        .toggle-switch.active::after {
-            transform: translateX(20px);
+        .export-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #111; border: 1px solid var(--accent); padding: 30px; border-radius: 20px;
+            display: none; flex-direction: column; gap: 15px; z-index: 200;
         }
     </style>
 </head>
 <body>
+    <div class="sidebar">
+        <div class="logo">NKARIK PRO</div>
 
-<div class="app-card">
-    <div class="header">
-        <h1>🎓 Պրոֆեսիոնալ</h1>
-        <div class="subtitle">Full Power AI Studio (18+)</div>
-    </div>
-
-    <div class="control-group">
-        <div class="control-label">🎨 Ոճեր</div>
-        <div class="style-grid" id="styleGrid"></div>
-    </div>
-
-    <div class="control-group">
-        <div class="control-label">⚙️ Պարամետրեր</div>
-        <div class="slider-row">
-            <label>Լուծաչափ</label>
-            <input type="range" id="resolution" min="256" max="1024" value="512" step="128">
-            <span id="resValue">512px</span>
-        </div>
-        <div class="slider-row">
-            <label>Seed</label>
-            <input type="range" id="seedControl" min="0" max="9999999" value="0">
-            <span id="seedValue">Random</span>
-        </div>
-        <div class="slider-row">
-            <label>CFG Scale</label>
-            <input type="range" id="cfgScale" min="1" max="20" value="7">
-            <span id="cfgValue">7</span>
-        </div>
-    </div>
-
-    <div class="control-group">
-        <div class="control-label">🔧 Լրացուցիչ</div>
-        <div class="advanced-options">
-            <div class="option-row">
-                <label>Սև ֆոն (Negative)</label>
-                <div class="toggle-switch" id="negToggle" onclick="toggleOption(this)"></div>
-            </div>
-            <div class="option-row">
-                <label>Մանրամասնություն (Detail)</label>
-                <div class="toggle-switch active" id="detailToggle" onclick="toggleOption(this)"></div>
-            </div>
-            <div class="option-row">
-                <label>Արտահանում SVG</label>
-                <div class="toggle-switch" id="svgToggle" onclick="toggleOption(this)"></div>
+        <div class="control-panel">
+            <div class="label">Work Mode</div>
+            <div class="btn-group">
+                <button class="btn active" id="mode3D" onclick="setAppMode('3d')">3D VIEW</button>
+                <button class="btn" id="modeAnim" onclick="setAppMode('anime')">ANIMATION</button>
             </div>
         </div>
-    </div>
 
-    <div class="result-view" id="resView">
-        <div class="loader" id="proLoader">🔮 Weaving pixels...</div>
-        <img id="proResImg" class="res-img">
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-sec" style="flex:1" onclick="document.getElementById('resView').style.display='none'">Back</button>
-            <button class="btn-main" style="flex:1" id="proDown">Download</button>
+        <div class="control-panel">
+            <div class="label">AI Studio Tools</div>
+            <input type="text" id="aiPrompt" placeholder="Text-to-3D Prompt...">
+            <button class="btn active" style="width:100%; margin-top:5px; background:var(--accent); color:white" onclick="generatePRO()">GENERATE ART ✨</button>
+        </div>
+
+        <div class="control-panel" id="params3D">
+            <div class="label">3D Parameters</div>
+            <div class="label" style="display:flex; justify-content:space-between"><span>Tension</span><span id="vTension">1.0</span></div>
+            <input type="range" class="slider" min="0.1" max="5" step="0.1" value="1.0" oninput="vTension.innerText=this.value; update3DParams()">
+
+            <div class="label" style="display:flex; justify-content:space-between"><span>Voxel Density</span><span id="vDensity">32</span></div>
+            <input type="range" class="slider" min="16" max="128" step="16" value="32" oninput="vDensity.innerText=this.value; reset3DScene()">
+        </div>
+
+        <div class="control-panel" id="paramsAnim" style="display:none">
+            <div class="label">Animation Timeline</div>
+            <button class="btn" style="width:100%" onclick="addFrame()">+ NEW FRAME</button>
+            <button class="btn" style="width:100%; margin-top:5px" onclick="playAnim()">PLAY SEQUENCE ▶️</button>
+        </div>
+
+        <div class="control-panel">
+            <div class="label">Export Engine</div>
+            <div class="btn-group">
+                <button class="btn" onclick="exportFile('png')">PNG</button>
+                <button class="btn" onclick="exportFile('obj')">OBJ</button>
+                <button class="btn" onclick="exportFile('glb')">GLB</button>
+                <button class="btn" onclick="exportFile('mp4')">MP4</button>
+            </div>
+        </div>
+
+        <div style="margin-top:auto">
+            <button class="btn" style="width:100%" onclick="location.href='index.html'">🏠 BACK TO MENU</button>
         </div>
     </div>
 
-    <script src="shared/templates.js"></script>
+    <div class="viewport">
+        <div class="canvas-container" id="viewContainer">
+            <canvas id="threeCanvas"></canvas>
+            <canvas id="drawingLayer"></canvas>
+        </div>
+
+        <div class="timeline" id="animTimeline" style="display:none">
+            <div class="label">Frame Interpolation Sequence</div>
+            <div class="frames" id="frameList"></div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <h2 style="color:var(--neon)">Generating Masterpiece...</h2>
+    </div>
+
     <script>
-        const canvas = document.getElementById('proCanvas');
-        const ctx = canvas.getContext('2d');
+        let scene, camera, renderer, mesh;
+        let appMode = '3d';
+        let frames = [];
+        let currentFrameIndex = 0;
+
+        const dCanvas = document.getElementById('drawingLayer');
+        const dCtx = dCanvas.getContext('2d');
         let isDrawing = false;
-        let lastPrompt = "";
-        let currentStyle = 'realistic';
-        let tool = 'brush';
 
         function init() {
-            const size = document.getElementById('cBox').clientWidth;
-            canvas.width = canvas.height = size;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            setTool('brush', document.querySelector('.tool-icon.active'));
-            renderStyles();
+            initThree();
+            resize();
+            window.addEventListener('resize', resize);
+            setupDrawing();
+            animate();
         }
 
-        function setTool(t, el) {
-            tool = t;
-            document.querySelectorAll('.tool-icon').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threeCanvas'), antialias: true });
 
-            ctx.globalCompositeOperation = (t === 'eraser') ? 'destination-out' : 'source-over';
-            if (t === 'brush') { ctx.lineWidth = 10; ctx.globalAlpha = 1; }
-            else if (t === 'pencil') { ctx.lineWidth = 3; ctx.globalAlpha = 1; }
-            else if (t === 'marker') { ctx.lineWidth = 15; ctx.globalAlpha = 0.4; }
-            else if (t === 'eraser') { ctx.lineWidth = 20; ctx.globalAlpha = 1; }
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            reset3DScene();
+            camera.position.z = 5;
         }
 
-        function renderStyles() {
-            const grid = document.getElementById('proStyles');
-            ART_STYLES.slice(0, 18).forEach(s => {
-                const item = document.createElement('div');
-                item.className = `style-item ${s.id === currentStyle ? 'active' : ''}`;
-                item.innerHTML = `<div>${s.label.split(' ')[1]}</div><div>${s.label.split(' ')[0]}</div>`;
-                item.onclick = () => {
-                    currentStyle = s.id;
-                    document.querySelectorAll('.style-item').forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                };
-                grid.appendChild(item);
-            });
+        function reset3DScene() {
+            if(mesh) scene.remove(mesh);
+            const density = parseInt(document.getElementById('vDensity').innerText);
+            const geometry = new THREE.PlaneGeometry(5, 5, density, density);
+            const material = new THREE.MeshPhongMaterial({ color: 0x6c5ce7, wireframe: true, side: THREE.DoubleSide });
+            mesh = new THREE.Mesh(geometry, material);
+            mesh.rotation.x = -Math.PI / 3;
+            scene.add(mesh);
         }
 
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function resize() {
+            const container = document.getElementById('viewContainer');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+
+            dCanvas.width = w;
+            dCanvas.height = h;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(appMode === '3d') {
+                mesh.rotation.z += 0.005;
+
+                // Displace vertices based on "tension" or "sound"
+                const time = Date.now() * 0.001;
+                const tension = parseFloat(document.getElementById('vTension').innerText);
+                const pos = mesh.geometry.attributes.position;
+                for(let i=0; i<pos.count; i++) {
+                    const x = pos.getX(i);
+                    const y = pos.getY(i);
+                    const z = Math.sin(x*tension + time) * Math.cos(y*tension + time) * 0.5;
+                    pos.setZ(i, z);
+                }
+                pos.needsUpdate = true;
+            }
+            renderer.render(scene, camera);
+        }
+
+        function setAppMode(m) {
+            appMode = m;
+            document.querySelectorAll('.sidebar .btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(m === '3d' ? 'mode3D' : 'modeAnim').classList.add('active');
+
+            document.getElementById('params3D').style.display = m === '3d' ? 'flex' : 'none';
+            document.getElementById('paramsAnim').style.display = m === 'anime' ? 'flex' : 'none';
+            document.getElementById('animTimeline').style.display = m === 'anime' ? 'flex' : 'none';
+
+            dCanvas.classList.toggle('active', m === 'anime');
+            resize();
+        }
+
+        function setupDrawing() {
+            dCanvas.onmousedown = dCanvas.ontouchstart = (e) => {
+                if(appMode !== 'anime') return;
+                isDrawing = true;
+                const p = getPos(e);
+                dCtx.beginPath();
+                dCtx.moveTo(p.x, p.y);
+            };
+            window.onmousemove = window.ontouchmove = (e) => {
+                if(!isDrawing) return;
+                const p = getPos(e);
+                dCtx.strokeStyle = 'white';
+                dCtx.lineWidth = 2;
+                dCtx.lineTo(p.x, p.y);
+                dCtx.stroke();
+            };
+            window.onmouseup = window.ontouchend = () => isDrawing = false;
+        }
 
         function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
+            const rect = dCanvas.getBoundingClientRect();
             const cx = e.touches ? e.touches[0].clientX : e.clientX;
             const cy = e.touches ? e.touches[0].clientY : e.clientY;
             return { x: cx - rect.left, y: cy - rect.top };
         }
 
-        canvas.onmousedown = canvas.ontouchstart = (e) => {
-            if(e.type==='touchstart') e.preventDefault();
-            isDrawing = true;
-            const p = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-        };
-        window.onmousemove = window.ontouchmove = (e) => {
-            if (!isDrawing) return;
-            const p = getPos(e);
-            ctx.lineTo(p.x, p.y);
-            ctx.stroke();
-        };
-        window.onmouseup = window.ontouchend = () => isDrawing = false;
+        async function generatePRO() {
+            const prompt = document.getElementById('aiPrompt').value;
+            document.getElementById('loading').style.display = 'flex';
 
-        async function generatePro() {
-            const userText = document.getElementById('promptIn').value.trim();
-            if (!userText) { alert('Please enter a prompt!'); return; }
+            // Text-to-3D Texture Generation simulation
+            const seed = Math.floor(Math.random() * 9999999);
+            const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt + ", procedural seamless texture, high detail 8k")}.png?width=512&height=512&seed=${seed}`;
 
-            const style = ART_STYLES.find(s => s.id === currentStyle);
-            const detailOn = document.getElementById('detailTog').classList.contains('active');
-            const darkOn = document.getElementById('darkTog').classList.contains('active');
-            const cfg = document.getElementById('cfgSlider').value;
-            const res = document.getElementById('resSlider').value;
-            let seed = parseInt(document.getElementById('seedIn').value);
-            if (seed === 0) seed = Math.floor(Math.random() * 9999999);
+            const loader = new THREE.TextureLoader();
+            loader.load(url, (texture) => {
+                mesh.material.map = texture;
+                mesh.material.wireframe = false;
+                mesh.material.needsUpdate = true;
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
 
-            let prompt = `${userText}, ${style.prompt}`;
-            if (detailOn) prompt += ', highly detailed, intricate, masterpiece, best quality';
-            if (darkOn)   prompt += ', dark dramatic lighting, moody atmosphere';
-            prompt += `, guidance:${cfg}`;
+        function addFrame() {
+            const thumb = document.createElement('div');
+            thumb.className = 'frame-thumb';
+            thumb.innerText = `Frame ${frames.length + 1}`;
+            const data = dCanvas.toDataURL();
+            frames.push(data);
+            document.getElementById('frameList').appendChild(thumb);
+            dCtx.clearRect(0,0,dCanvas.width,dCanvas.height);
+        }
 
-            lastPrompt = prompt;
-
-            document.getElementById('resView').style.display = 'flex';
-            document.getElementById('proLoader').style.display = 'block';
-            document.getElementById('proResImg').src = '';
-
-            try {
-                const url = `https://image.pollinations.ai/p/${encodeURIComponent(prompt)}?width=${res}&height=${res}&seed=${seed}&nofeed=true&nologo=true`;
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const imgUrl = URL.createObjectURL(blob);
-
-                document.getElementById('proResImg').src = imgUrl;
-                document.getElementById('proLoader').style.display = 'none';
-                document.getElementById('proDown').onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = imgUrl;
-                    a.download = `nkarik_pro_${seed}.png`;
-                    a.click();
+        function playAnim() {
+            let i = 0;
+            const interval = setInterval(() => {
+                if(i >= frames.length) { clearInterval(interval); return; }
+                const img = new Image();
+                img.src = frames[i];
+                img.onload = () => {
+                    dCtx.clearRect(0,0,dCanvas.width,dCanvas.height);
+                    dCtx.drawImage(img, 0, 0);
                 };
-            } catch (e) {
-                alert('Generation failed. Please try again.');
-                document.getElementById('resView').style.display = 'none';
-            }
+                i++;
+            }, 200);
         }
 
-        function generateVariation() {
-            if (!lastPrompt) { alert('Generate a first image before requesting variation!'); return; }
-            document.getElementById('seedIn').value = 0;
-            generatePro();
+        function exportFile(type) {
+            alert(`Exporting ${type.toUpperCase()}... Implementation depends on target environment.`);
         }
 
-        document.getElementById('resSlider').oninput = (e) => document.getElementById('resVal').innerText = e.target.value;
-        document.getElementById('cfgSlider').oninput = (e) => document.getElementById('cfgVal').innerText = e.target.value;
-
-        window.onresize = () => {
-            const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            init();
-            ctx.putImageData(data, 0, 0);
-        };
-
-        document.addEventListener('DOMContentLoaded', init);
+        init();
     </script>
 </body>
 </html>

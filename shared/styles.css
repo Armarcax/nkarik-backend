@@ -2,8 +2,10 @@
     --arm-red: #D90012;
     --arm-blue: #0033A0;
     --arm-orange: #F2A800;
-    --bg-dark: #1a1a2e;
-    --bg-light: #16213e;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --primary-gradient: linear-gradient(135deg, #6c5ce7, #a1c4fd);
+    --neon-blue: #00f3ff;
 }
 
 * {
@@ -13,10 +15,18 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+@keyframes rainbowBg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
-    background: linear-gradient(135deg, rgba(217,0,18,0.1), rgba(0,51,160,0.15), rgba(242,168,0,0.1));
+    background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #ffd1ff, #a1c4fd);
+    background-size: 400% 400%;
+    animation: rainbowBg 15s ease infinite;
     color: #333;
     padding: 12px;
     display: flex;
@@ -25,8 +35,22 @@ body {
 }
 
 body.dark {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e);
     color: #eee;
+}
+
+body.neon {
+    background: #000;
+    color: var(--neon-blue);
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
 .container {
@@ -35,11 +59,11 @@ body.dark {
 }
 
 .back-btn {
-    position: absolute;
+    position: fixed;
     top: 20px;
     left: 20px;
-    background: rgba(255,255,255,0.2);
-    border: none;
+    background: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50%;
     width: 44px;
     height: 44px;
@@ -48,6 +72,33 @@ body.dark {
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
     z-index: 100;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    transform: scale(1.1);
+    background: white;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+/* Custom Buttons */
+.btn-glass {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 10px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-glass:hover {
+    background: rgba(255,255,255,0.4);
+    transform: translateY(-2px);
 }
