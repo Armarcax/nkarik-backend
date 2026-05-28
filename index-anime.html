@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ AI — Ultimate Education Studio</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+        
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 20%, #a1c4fd 40%, #c2e9fb 60%, #e0c3fc 80%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: rainbowBackground 20s ease infinite;
+            color: #1D1D1F; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #FF2D55, #FF9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .studio-container {
+            max-width: 1024px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-grow: 1;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media(min-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr 320px;
+            }
+        }
+
+        .canvas-area {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 500px;
+            background: #f9f9f9;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px dashed #e0e0e0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            z-index: 2;
+        }
+
+        .guide-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            padding: 20px;
+            opacity: 0.4;
+        }
+
+        .guide-overlay svg {
+            width: 100%;
+            height: 100%;
+            color: #808080;
+            fill: none;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .color-dot {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-dot.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px #1D1D1F;
+        }
+
+        .tool-btn {
+            background: #F2F2F7;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .tool-btn.active {
+            background: #007AFF;
+            color: white;
+        }
+
+        .library-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .library-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #8E8E93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .horizontal-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 5px 2px 15px 2px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .library-item {
+            flex: 0 0 80px;
+            height: 80px;
+            background: white;
+            border-radius: 16px;
+            border: 2px solid #E5E5EA;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            cursor: pointer;
+            scroll-snap-align: start;
+            transition: all 0.2s;
+        }
+
+        .library-item:hover, .library-item.active {
+            border-color: #007AFF;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,71,255,0.1);
+        }
+
+        .library-item svg {
+            width: 100%;
+            height: 100%;
+            color: #48484A;
+        }
+
+        .ai-section {
+            background: linear-gradient(135deg, #FF2D55, #FF9500);
+            border-radius: 24px;
+            padding: 24px;
+            color: white;
+            box-shadow: 0 15px 35px rgba(255,45,85,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ai-input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary { background: white; color: #FF2D55; }
+        .btn-secondary { background: rgba(0,0,0,0.2); color: white; }
+
+        .result-panel {
+            display: none;
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .result-media {
+            width: 100%;
+            max-width: 450px;
+            border-radius: 16px;
+            margin: 0 auto 15px auto;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 300px;
+            background: #E5E5EA;
+            height: 8px;
+            border-radius: 4px;
+            margin: 10px auto;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(45deg, #FF2D55, #FF9500);
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">🎨 <span>Նկարիկ AI</span></div>
+</header>
+
+<div class="studio-container">
+    <div class="workspace">
+        
+        <div class="canvas-area">
+            <div class="canvas-wrapper">
+                <div class="guide-overlay" id="guideOverlay"></div>
+                <canvas id="paintCanvas"></canvas>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="tool-btn" id="clearBtn" style="flex: 1;">🗑️ Մաքրել</button>
+                <button class="tool-btn" id="eraserBtn" style="flex: 1;">🧽 Ռետին</button>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="palette">
+                <div class="color-dot active" style="background: #FF3B30;" data-color="#FF3B30"></div>
+                <div class="color-dot" style="background: #FF9500;" data-color="#FF9500"></div>
+                <div class="color-dot" style="background: #FFCC00;" data-color="#FFCC00"></div>
+                <div class="color-dot" style="background: #34C759;" data-color="#34C759"></div>
+                <div class="color-dot" style="background: #5AC8FA;" data-color="#5AC8FA"></div>
+                <div class="color-dot" style="background: #007AFF;" data-color="#007AFF"></div>
+                <div class="color-dot" style="background: #5856D6;" data-color="#5856D6"></div>
+                <div class="color-dot" style="background: #AF52DE;" data-color="#AF52DE"></div>
+                <div class="color-dot" style="background: #FF2D55;" data-color="#FF2D55"></div>
+                <div class="color-dot" style="background: #1D1D1F;" data-color="#1D1D1F"></div>
+            </div>
+
+            <div class="library-section">
+                <div class="library-title">🧸 Ուրվագծեր Երեխաների համար</div>
+                <div class="horizontal-scroll" id="kidsOutlines"></div>
+            </div>
+
+            <div class="library-section">
+                <div class="library-title">🚀 Ուրվագծեր Մեծահասակների համար</div>
+                <div class="horizontal-scroll" id="adultOutlines"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-section">
+        <h2>✨ Կախարդական Գեներացիա</h2>
+        <p>Մուտքագրեք ձեր նկարածի նկարագրությունը ցանկացած լեզվով։</p>
+        <input type="text" class="ai-input" id="promptInput" placeholder="Օրինակ՝ կատու տիեզերքում, մրցարշավային ավտոմեքենա...">
+        <div class="action-grid">
+            <button class="action-btn btn-primary" id="generateBtn">🔮 Պատկերել</button>
+            <button class="action-btn btn-secondary" id="videoBtn">🎥 Անիմացիա</button>
+        </div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+        <h3 id="loadingText" style="margin-bottom: 5px; font-weight: 600; line-height: 1.5;">🪄 AI-ը ստեղծում է արվեստի գործը...</h3>
+        
+        <div class="progress-bar-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <img class="result-media" id="resultImg" alt="AI Generated Output">
+
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+            <button class="tool-btn" id="downloadBtn">💾 Ներբեռնել</button>
+            <button class="tool-btn" id="newBtn">🔄 Նոր Նկար</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const OUTLINES_DATABASE = {
+            kids: [
+                { id: "k_cat", name: "Cute Kitten", svg: `<svg viewBox="0 0 100 100"><path d="M30,60 C30,45 40,35 50,35 C60,35 70,45 70,60 C70,75 60,80 50,80 C40,80 30,75 30,60 Z M30,40 L25,20 L40,30 M70,40 L75,20 L60,30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>` },
+                { id: "k_puppy", name: "Playful Puppy", svg: `<svg viewBox="0 0 100 100"><path d="M35,40 C35,30 45,25 50,25 C55,25 65,30 65,40 C65,55 60,75 50,75 C40,75 35,55 35,40 Z M25,35 C20,45 25,60 30,55 M75,35 C80,45 75,60 70,55" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>` },
+                { id: "k_dolphin", name: "Friendly Dolphin", svg: `<svg viewBox="0 0 100 100"><path d="M20,60 C30,40 50,30 75,35 C85,37 90,45 85,50 C75,55 60,50 45,65 C35,75 25,75 20,60 Z M55,33 C58,25 65,28 62,34 M40,53 C35,58 32,54 36,49" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>` },
+                { id: "k_rocket", name: "Space Rocket", svg: `<svg viewBox="0 0 100 100"><path d="M50,15 C60,30 65,50 62,75 L38,75 C35,50 40,30 50,15 Z M38,60 L25,70 L28,75 L38,75 M62,60 L75,70 L72,75 L62,75 M45,80 L45,90 L55,90 L55,80" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>` }
+            ],
+            adult: [
+                { id: "a_sports_car", name: "Modern Sports Car", svg: `<svg viewBox="0 0 100 100"><path d="M15,65 L20,52 C22,48 28,45 35,43 L52,32 C58,28 72,28 78,35 L90,48 C94,52 93,58 90,62 L85,65 Z M28,65 A7,7 0 1,0 28,65.1 M72,65 A7,7 0 1,0 72,65.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` },
+                { id: "a_cyber_robot", name: "Sci-Fi Android", svg: `<svg viewBox="0 0 100 100"><path d="M35,25 L65,25 L70,50 L65,55 L35,55 L30,50 Z M40,60 L60,60 L65,85 L35,85 Z M30,35 L15,45 L20,70 L30,65 M70,35 L85,45 L80,70 L70,65 M42,35 L48,35 M52,35 L58,35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>` },
+                { id: "a_castle", name: "Fantasy Castle", svg: `<svg viewBox="0 0 100 100"><path d="M20,85 L80,85 L80,55 L70,55 L70,40 L60,40 L60,55 L40,55 L40,40 L30,40 L30,55 L20,55 Z M20,55 L15,35 L25,35 Z M80,55 L75,35 L85,35 Z M50,40 L45,20 L55,20 Z M45,85 L45,70 C45,67 55,67 55,70 L55,85" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` },
+                { id: "a_motorcycle", name: "Superbike Concept", svg: `<svg viewBox="0 0 100 100"><path d="M25,70 A10,10 0 1,0 25,70.1 M75,70 A10,10 0 1,0 75,70.1 M25,70 L40,55 L65,55 L75,70 M40,55 L50,35 L68,38 L65,55 M50,35 L35,42 L30,45" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` }
+            ]
+        };
+
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const guideOverlay = document.getElementById('guideOverlay');
+        
+        function resizeCanvas() {
+            const size = canvas.parentElement.clientWidth;
+            canvas.width = size;
+            canvas.height = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = currentColor;
+        }
+
+        let isDrawing = false;
+        let currentColor = '#FF3B30';
+        let isEraser = false;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: ((clientX - rect.left) / rect.width) * canvas.width,
+                y: ((clientY - rect.top) / rect.height) * canvas.height
+            };
+        }
+
+        function startDraw(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            e.preventDefault();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            e.preventDefault();
+        }
+
+        function stopDraw() { isDrawing = false; }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        window.addEventListener('touchend', stopDraw);
+
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.onclick = (e) => {
+                isEraser = false;
+                document.getElementById('eraserBtn').classList.remove('active');
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                e.target.classList.add('active');
+                currentColor = e.target.dataset.color;
+                ctx.strokeStyle = currentColor;
+                ctx.globalCompositeOperation = 'source-over';
+            };
+        });
+
+        document.getElementById('eraserBtn').onclick = (e) => {
+            isEraser = !isEraser;
+            e.target.classList.toggle('active', isEraser);
+            ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+            if (!isEraser) ctx.strokeStyle = currentColor;
+        };
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            guideOverlay.innerHTML = '';
+            document.querySelectorAll('.library-item').forEach(item => item.classList.remove('active'));
+        }
+        document.getElementById('clearBtn').onclick = clearCanvas;
+
+        window.selectOutline = (id, type) => {
+            document.querySelectorAll('.library-item').forEach(item => item.classList.remove('active'));
+            const selectedItem = document.querySelector(`[data-id="${id}"]`);
+            if (selectedItem) selectedItem.classList.add('active');
+
+            const itemData = OUTLINES_DATABASE[type].find(o => o.id === id);
+            if (itemData) {
+                guideOverlay.innerHTML = itemData.svg;
+            }
+        };
+
+        function renderLibrary() {
+            const kidsContainer = document.getElementById('kidsOutlines');
+            const adultContainer = document.getElementById('adultOutlines');
+
+            kidsContainer.innerHTML = OUTLINES_DATABASE.kids.map(item => `
+                <div class="library-item" data-id="${item.id}" onclick="selectOutline('${item.id}', 'kids')" title="${item.name}">
+                    ${item.svg}
+                </div>
+            `).join('');
+
+            adultContainer.innerHTML = OUTLINES_DATABASE.adult.map(item => `
+                <div class="library-item" data-id="${item.id}" onclick="selectOutline('${item.id}', 'adult')" title="${item.name}">
+                    ${item.svg}
+                </div>
+            `).join('');
+        }
+
+        window.onload = () => {
+            resizeCanvas();
+            renderLibrary();
+        };
+        window.onresize = resizeCanvas;
+
+        const generateBtn = document.getElementById('generateBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const resultPanel = document.getElementById('resultPanel');
+        const loadingText = document.getElementById('loadingText');
+        const resultImg = document.getElementById('resultImg');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+
+        function cleanAndTranslate(input) {
+            let text = input.toLowerCase().trim();
+            const dict = {
+                "կատու": "cute cartoon kitten pixar 3d",
+                "շուն": "cute puppy disney style",
+                "հրթիռ": "space rocket flying stars launch cartoon",
+                "մեքենա": "cool racing car 3d stylised",
+                "ավտո": "cool racing car 3d stylised",
+                "ռոբոտ": "cute futuristic friendly robot dancing",
+                "տուն": "magic fairy castle illustration",
+                "ծաղիկ": "beautiful bright glowing flower"
+            };
+            for(let key in dict) {
+                if(text.includes(key)) return dict[key];
+            }
+            return text + " kid friendly cute cartoon style 3d render";
+        }
+
+        async function processAI(isVideoMode) {
+            resultPanel.style.display = 'block';
+            loadingText.style.display = 'block';
+            progressContainer.style.display = 'block';
+            resultImg.style.display = 'none';
+            generateBtn.disabled = true;
+            videoBtn.disabled = true;
+            progressBar.style.width = '0%';
+            resultPanel.scrollIntoView({ behavior: 'smooth' });
+
+            const origPrompt = document.getElementById('promptInput').value || 'magic artwork';
+            const aiPrompt = encodeURIComponent(cleanAndTranslate(origPrompt));
+            const seed = Math.floor(Math.random() * 999999);
+
+            let progress = 0;
+            const targetTime = isVideoMode ? 5000 : 2500; 
+            const intervalStep = 50;
+            const increment = (100 / (targetTime / intervalStep));
+
+            const progressInterval = setInterval(() => {
+                progress += increment;
+                if (progress <= 92) {
+                    progressBar.style.width = progress + '%';
+                    loadingText.innerHTML = isVideoMode ? 
+                        `🎥 AI-ը հավաքում է անիմացիան... ${Math.floor(progress)}%` : 
+                        `🔮 AI-ը նկարում է պատկերը... ${Math.floor(progress)}%`;
+                }
+            }, intervalStep);
+
+            // Կառուցում ենք հղումը՝ ըստ ռեժիմի (վիդեո հոսք թե Flux նկար)
+            const finalUrl = isVideoMode ? 
+                `https://image.pollinations.ai/p/${aiPrompt}?width=500&height=500&seed=${seed}&enhance=true&feed=true` :
+                `https://image.pollinations.ai/p/${aiPrompt}?width=600&height=600&seed=${seed}&enhance=true&model=flux`;
+
+            const img = new Image();
+            img.src = finalUrl;
+            
+            img.onload = () => {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                setTimeout(() => {
+                    loadingText.style.display = 'none';
+                    progressContainer.style.display = 'none';
+                    generateBtn.disabled = false;
+                    videoBtn.disabled = false;
+                    resultImg.style.display = 'block';
+                    resultImg.src = finalUrl;
+                    resultPanel.scrollIntoView({ behavior: 'smooth' });
+                }, 400);
+            };
+
+            img.onerror = () => {
+                clearInterval(progressInterval);
+                loadingText.innerHTML = "⚠️ Սերվերը զբաղված է, խնդրում ենք նորից փորձել:";
+                generateBtn.disabled = false;
+                videoBtn.disabled = false;
+            };
+        }
+
+        generateBtn.onclick = () => processAI(false);
+        videoBtn.onclick = () => processAI(true);
+
+        document.getElementById('downloadBtn').onclick = () => {
+            if (resultImg.src) window.open(resultImg.src, '_blank');
+        };
+
+        document.getElementById('newBtn').onclick = () => {
+            resultPanel.style.display = 'none';
+            clearCanvas();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    })();
+</script>
+</body>
+</html>
