@@ -180,6 +180,7 @@
     </div>
 
     <script src="shared/templates.js"></script>
+    <script src="shared/recognition.js"></script>
     <script>
         const uCanvas = document.getElementById('userCanvas');
         const gCanvas = document.getElementById('guideCanvas');
@@ -233,9 +234,13 @@
 
         function resize() {
             const size = uCanvas.parentElement.clientWidth;
+            if (uCanvas.width === size && uCanvas.height === size) return;
+
+            const data = uCtx.getImageData(0, 0, uCanvas.width, uCanvas.height);
             uCanvas.width = gCanvas.width = size;
             uCanvas.height = gCanvas.height = size;
             uCtx.lineCap = uCtx.lineJoin = 'round';
+            uCtx.putImageData(data, 0, 0);
             renderGuide();
             redraw();
         }
@@ -326,9 +331,17 @@
             if(!isDrawing) return;
             isDrawing = false;
             if(points.length > 1) {
-                history.push({pts: [...points], c: color});
+                const currentStroke = [...points];
+                history.push({pts: currentStroke, c: color});
                 totalTime += (performance.now() - startTime);
                 startTime = 0;
+
+                // Real-time recognition suggestion
+                if (currentCat !== 'objects') {
+                    const strokes = history.map(h => h.pts);
+                    const result = LetterNumberEngine.recognize(strokes);
+                    // result && result.confidence > 0.5
+                }
             }
         };
 
@@ -355,8 +368,22 @@
         }
 
         function checkResult() {
-            if(!selectedTmpl) return;
-            const acc = calculateAccuracy();
+            if(!selectedTmpl && history.length === 0) return;
+
+            let acc = 0;
+            if (selectedTmpl) {
+                acc = calculateAccuracy();
+            } else {
+                // Try to recognize what was drawn if no template selected
+                const strokes = history.map(h => h.pts);
+                const rec = SmartOutlineEngine.recognize(strokes, GUIDED_TEMPLATES);
+                if (rec) {
+                    selectedTmpl = rec.template;
+                    acc = Math.round(rec.confidence * 100);
+                    renderGuide();
+                }
+            }
+
             const speed = Math.round(totalTime);
             const prop = calculateProportions();
             const style = speed < 1000 ? "Fast" : (speed > 5000 ? "Careful" : "Normal");
@@ -374,22 +401,33 @@
             const tCanvas = document.createElement('canvas');
             tCanvas.width = uCanvas.width; tCanvas.height = uCanvas.height;
             const tCtx = tCanvas.getContext('2d');
-            const margin = uCanvas.width * 0.05;
-            const scale = uCanvas.width * 0.9 / 100;
-            tCtx.translate(margin, margin); tCtx.scale(scale, scale);
-            const pStr = selectedTmpl.path || getPathTemplate(selectedTmpl.id);
+
+            const pStr = getPathTemplate(selectedTmpl.id);
+            if (!pStr) return 0;
+
             const p2d = new Path2D(pStr);
-            tCtx.lineWidth = LVLS[currentLvl].tol / scale;
+            const margin = tCanvas.width * 0.05;
+            const scale = tCanvas.width * 0.9 / 100;
+
+            tCtx.save();
+            tCtx.translate(margin, margin);
+            tCtx.scale(scale, scale);
+            tCtx.lineWidth = (LVLS[currentLvl].tol || 10) / scale;
             tCtx.strokeStyle = '#000';
             tCtx.stroke(p2d);
+            tCtx.restore();
 
-            const gData = tCtx.getImageData(0,0,uCanvas.width, uCanvas.height).data;
-            const uData = uCtx.getImageData(0,0,uCanvas.width, uCanvas.height).data;
+            const gData = tCtx.getImageData(0, 0, tCanvas.width, tCanvas.height).data;
+            const uData = uCtx.getImageData(0, 0, uCanvas.width, uCanvas.height).data;
+
             let gPix = 0, covered = 0;
             for(let i=3; i<gData.length; i+=4) {
-                if(gData[i]>10) { gPix++; if(uData[i]>10) covered++; }
+                if(gData[i] > 10) {
+                    gPix++;
+                    if(uData[i] > 10) covered++;
+                }
             }
-            return gPix > 0 ? Math.round((covered/gPix)*100) : 0;
+            return gPix > 0 ? Math.round((covered / gPix) * 100) : 0;
         }
 
         function calculateProportions() {

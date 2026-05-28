@@ -175,6 +175,7 @@
     </div>
 
     <script src="shared/templates.js"></script>
+    <script src="shared/recognition.js"></script>
     <script>
         const canvas = document.getElementById('mainCanvas');
         const pCanvas = document.getElementById('particleCanvas');
@@ -192,6 +193,7 @@
         let currentStyle = 'cartoon';
         let currentMode = 'sketch';
         let points = [];
+        let strokes = [];
         let particles = [];
 
         const MODES = {
@@ -209,9 +211,19 @@
         }
 
         function resize() {
+            if (canvas.width === 0) {
+                const size = canvas.parentElement.clientWidth;
+                canvas.width = canvas.height = pCanvas.width = pCanvas.height = size;
+                ctx.lineCap = ctx.lineJoin = 'round';
+                return;
+            }
             const size = canvas.parentElement.clientWidth;
+            if (canvas.width === size) return;
+
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
             canvas.width = canvas.height = pCanvas.width = pCanvas.height = size;
             ctx.lineCap = ctx.lineJoin = 'round';
+            ctx.putImageData(data, 0, 0);
         }
 
         function renderStyles() {
@@ -247,7 +259,11 @@
             points.push(p);
         };
 
-        window.onmouseup = window.ontouchend = () => { isDrawing = false; document.getElementById('suggestions').style.display='block'; };
+        window.onmouseup = window.ontouchend = () => {
+            isDrawing = false;
+            if (points.length > 1) strokes.push([...points]);
+            document.getElementById('suggestions').style.display='block';
+        };
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
@@ -321,22 +337,32 @@
             btn.classList.add('active');
         }
 
-        function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+        function clearCanvas() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            strokes = [];
+        }
 
         function translateToEnglish(text) {
             if (!text) return "";
-            let translated = text.toLowerCase();
-            for (const [en, common] of Object.entries(DICTIONARY_MAP)) {
-                if (common.hy.includes(translated) || common.ru.includes(translated)) {
-                    return en;
-                }
-            }
-            return text;
+            const words = text.toLowerCase().split(/\s+/);
+            const translated = words.map(w => DICTIONARY_MAP[w] || w);
+            return translated.join(" ");
         }
 
         async function generate() {
             const userText = document.getElementById('promptIn').value.trim();
             const translatedText = translateToEnglish(userText);
+
+            let recognitionPrompt = "";
+            if (strokes.length > 0) {
+                const rec = SmartOutlineEngine.recognize(strokes, GUIDED_TEMPLATES);
+                if (rec && rec.confidence > 0.6) {
+                    recognitionPrompt = rec.template.label.en;
+                } else {
+                    recognitionPrompt = "unknown sketch, please interpret creatively";
+                }
+            }
+
             const styleObj = ART_STYLES.find(s => s.id === currentStyle);
 
             genBtn.disabled = true;
@@ -345,7 +371,8 @@
             resImg.style.display = 'none';
 
             // Composite prompt
-            const prompt = `${translatedText || 'creative illustration'}, ${MODES[currentMode]}, ${styleObj.prompt}, child friendly, high quality, cinematic lighting`;
+            const baseText = translatedText || recognitionPrompt || 'creative illustration';
+            const prompt = `${baseText}, ${MODES[currentMode]}, ${styleObj.prompt}, child friendly, high quality, cinematic lighting`;
 
             try {
                 // Pure client-side Pollinations integration

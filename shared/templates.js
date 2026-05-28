@@ -202,9 +202,9 @@ function getPathTemplate(tmplId) {
     const tmpl = GUIDED_TEMPLATES.find(t => t.id === tmplId);
     if (!tmpl) return null;
     if (tmpl.path) return tmpl.path;
-    // Extract path from SVG if path field is missing
-    const match = tmpl.svg.match(/d="([^"]+)"/);
-    return match ? match[1] : "";
+    // Extract all paths from SVG if path field is missing
+    const matches = [...tmpl.svg.matchAll(/d="([^"]+)"/g)];
+    return matches.map(m => m[1]).join(" ");
 }
 
 // Global state for shared use if needed

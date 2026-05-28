@@ -427,8 +427,16 @@
         }
 
         function resize() {
-            const data = ctx.getImageData(0,0,canvas.width,canvas.height);
+            if (canvas.width === 0 || canvas.height === 0) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientWidth;
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 15;
+                return;
+            }
             const size = canvas.parentElement.clientWidth;
+            if (canvas.width === size && canvas.height === size) return;
+
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
             canvas.width = size; canvas.height = size;
             ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 15;
             ctx.putImageData(data, 0, 0);
@@ -606,6 +614,17 @@
         function toggleExport() {
             const m = document.getElementById('exportMenu');
             m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function speakMascot() {
+            const phrases = {
+                hy: ["Ես քո ընկեր Նկարիկն եմ: Եկեք միասին նկարենք:", "Դու հիանալի ես նկարում:", "Ուզու՞մ ես նոր գույն փորձել:", "Կախարդական կոճակը սեղմիր"],
+                en: ["I am your friend Nkarik! Let's draw together!", "You are drawing great!", "Want to try a new color?", "Press the magic button!"],
+                ru: ["Я твой друг Нкарик! Давай порисуем вместе!", "Ты отлично рисуешь!", "Хочешь попробовать новый цвет?", "Нажми волшебную кнопку!"]
+            };
+            const currentPhrases = phrases[currentLang] || phrases.en;
+            const randomPhrase = currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
+            speak(randomPhrase);
         }
 
         function speak(text) {
