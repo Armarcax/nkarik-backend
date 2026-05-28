@@ -85,6 +85,325 @@
                     <button class="btn-main" onclick="generatePro()">GENERATE ART</button>
                     <button class="btn-sec" onclick="generateVariation()">VARIATION</button>
                 </div>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎓 Նկարիկ - Պրոֆեսիոնալ (18+)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        @keyframes rainbowBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #1a1a2e 75%, #16213e 100%);
+            background-size: 400% 400%;
+            animation: rainbowBg 25s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            overflow-y: auto;
+            color: #E0E0E0;
+        }
+
+        .app-card {
+            background: rgba(30, 30, 40, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            max-width: 480px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header { text-align: center; padding: 8px; }
+        .header h1 { font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #E94560, #FF6B6B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { font-size: 13px; color: #888; font-weight: 600; }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .control-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #AAA;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .style-btn {
+            padding: 10px 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #CCC;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .style-btn:hover { background: rgba(255,255,255,0.1); }
+        .style-btn.active {
+            border-color: #E94560;
+            background: rgba(233, 69, 96, 0.2);
+            color: #E94560;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-row label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #AAA;
+            min-width: 80px;
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #E94560;
+            cursor: pointer;
+        }
+        .slider-row span {
+            font-size: 12px;
+            font-weight: 700;
+            color: #E94560;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .prompt-area {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            font-size: 14px;
+            resize: none;
+            height: 80px;
+            outline: none;
+            font-family: inherit;
+            background: rgba(255,255,255,0.05);
+            color: #E0E0E0;
+        }
+        .prompt-area:focus { border-color: #E94560; }
+        .prompt-area::placeholder { color: #666; }
+
+        .canvas-area {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: rgba(0,0,0,0.3);
+            border-radius: 24px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+
+        .tools-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+        .tool-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: #CCC;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover { background: rgba(255,255,255,0.15); }
+        .tool-btn.active { background: linear-gradient(135deg, #E94560, #FF6B6B); color: white; }
+
+        .action-btns { display: flex; gap: 10px; }
+        .big-btn {
+            flex: 1; padding: 14px; border: none; border-radius: 18px;
+            font-size: 15px; font-weight: 800; cursor: pointer; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: transform 0.1s;
+        }
+        .big-btn:active { transform: scale(0.97); }
+        .big-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-generate { background: linear-gradient(135deg, #E94560, #FF6B6B); }
+        .btn-variation { background: linear-gradient(135deg, #0F3460, #533483); }
+        .btn-clear { background: rgba(255,255,255,0.1); }
+
+        .loading-panel {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #E94560;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            animation: spin 1s linear infinite;
+        }
+        .loading-text { font-size: 14px; font-weight: 700; color: #E94560; }
+
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+        .result-img {
+            width: 100%; aspect-ratio: 1;
+            border-radius: 24px; object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .history-row { display: flex; gap: 8px; }
+        .hist-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 12px;
+            background: rgba(255,255,255,0.1); color: #CCC;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+        }
+        .hist-btn:hover { background: rgba(255,255,255,0.2); }
+        .hist-btn.primary { background: linear-gradient(135deg, #E94560, #FF6B6B); color: white; }
+
+        .advanced-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .option-row label {
+            font-size: 13px;
+            color: #AAA;
+        }
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-switch.active {
+            background: #E94560;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header">
+        <h1>🎓 Պրոֆեսիոնալ</h1>
+        <div class="subtitle">Full Power AI Studio (18+)</div>
+    </div>
+
+    <div class="control-group">
+        <div class="control-label">🎨 Ոճեր</div>
+        <div class="style-grid" id="styleGrid"></div>
+    </div>
+
+    <div class="control-group">
+        <div class="control-label">⚙️ Պարամետրեր</div>
+        <div class="slider-row">
+            <label>Լուծաչափ</label>
+            <input type="range" id="resolution" min="256" max="1024" value="512" step="128">
+            <span id="resValue">512px</span>
+        </div>
+        <div class="slider-row">
+            <label>Seed</label>
+            <input type="range" id="seedControl" min="0" max="9999999" value="0">
+            <span id="seedValue">Random</span>
+        </div>
+        <div class="slider-row">
+            <label>CFG Scale</label>
+            <input type="range" id="cfgScale" min="1" max="20" value="7">
+            <span id="cfgValue">7</span>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <div class="control-label">🔧 Լրացուցիչ</div>
+        <div class="advanced-options">
+            <div class="option-row">
+                <label>Սև ֆոն (Negative)</label>
+                <div class="toggle-switch" id="negToggle" onclick="toggleOption(this)"></div>
+            </div>
+            <div class="option-row">
+                <label>Մանրամասնություն (Detail)</label>
+                <div class="toggle-switch active" id="detailToggle" onclick="toggleOption(this)"></div>
+            </div>
+            <div class="option-row">
+                <label>Արտահանում SVG</label>
+                <div class="toggle-switch" id="svgToggle" onclick="toggleOption(this)"></div>
             </div>
         </div>
     </div>

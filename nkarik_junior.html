@@ -91,6 +91,239 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             margin-bottom: 20px;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎨 Նկարիկ - Մեծիկ (5-7)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        @keyframes rainbowBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes starPop { 0% { transform: scale(0) rotate(0deg); } 50% { transform: scale(1.3) rotate(180deg); } 100% { transform: scale(1) rotate(360deg); } }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #6BCB77 0%, #4D96FF 25%, #9B59B6 50%, #FF6B6B 75%, #6BCB77 100%);
+            background-size: 400% 400%;
+            animation: rainbowBg 18s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .app-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 480px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .header { text-align: center; padding: 8px; }
+        .header h1 { font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #6BCB77, #4D96FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { font-size: 13px; color: #888; font-weight: 600; }
+
+        .lang-tabs {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid #E5E5EA;
+            border-radius: 16px;
+            background: white;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lang-btn.active {
+            background: linear-gradient(135deg, #6BCB77, #4D96FF);
+            color: white;
+            border-color: transparent;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px;
+        }
+        .cat-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 14px;
+            background: #E5E5EA;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .cat-btn.active {
+            background: linear-gradient(135deg, #6BCB77, #4D96FF);
+            color: white;
+        }
+
+        .template-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px;
+            background: #F2F2F7;
+            border-radius: 16px;
+        }
+        .template-item {
+            flex: 0 0 70px;
+            height: 70px;
+            border: 3px solid #E5E5EA;
+            border-radius: 14px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .template-item:active { transform: scale(0.95); }
+        .template-item.active {
+            border-color: #4D96FF;
+            background: #E8F4FF;
+            animation: bounce 0.4s ease;
+        }
+        .template-item svg {
+            width: 60%;
+            height: 60%;
+            stroke: #4D96FF;
+            stroke-width: 3;
+            fill: none;
+        }
+        .template-item span {
+            font-size: 10px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .canvas-area {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .guide-overlay {
+            position: absolute; top: 5%; left: 5%; width: 90%; height: 90%;
+            opacity: 0.25; z-index: 1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .guide-overlay svg { width: 100%; height: 100%; stroke: #4D96FF; stroke-width: 4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        .tools-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        .tool-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 14px;
+            background: #F2F2F7;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn.active { background: linear-gradient(135deg, #6BCB77, #4D96FF); color: white; }
+
+        .color-palette {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 8px;
+            background: #F2F2F7;
+            border-radius: 16px;
+        }
+        .color-dot {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+        .color-dot.active { transform: scale(1.15); border-color: #333; }
+
+        .action-btns { display: flex; gap: 10px; }
+        .big-btn {
+            flex: 1; padding: 14px; border: none; border-radius: 18px;
+            font-size: 16px; font-weight: 800; cursor: pointer; color: white;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .big-btn:active { transform: scale(0.97); }
+        .btn-check { background: linear-gradient(135deg, #6BCB77, #4D96FF); }
+        .btn-clear { background: linear-gradient(135deg, #A0A0A0, #C0C0C0); }
+
+        .score-panel {
+            display: none;
+            text-align: center;
+            padding: 16px;
+            background: linear-gradient(135deg, #FFF9E6, #E6F7FF);
+            border-radius: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        .score-stars { font-size: 40px; margin: 8px 0; }
+        .score-text { font-size: 18px; font-weight: 800; color: #4D96FF; }
+        .score-bar {
+            width: 100%; height: 20px;
+            background: #E5E5EA;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6BCB77, #4D96FF);
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        .result-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+        .result-img {
+            width: 100%; aspect-ratio: 1;
+            border-radius: 24px; object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
     </style>
 </head>
